@@ -17,7 +17,7 @@ import PreviewSection from "./PreviewSection.astro";
   </p>
 </div>
 
-<div id="preview-content" class="hidden mt-20">
+<div id="preview-content" class="hidden">
   <div
     class="flex items-center justify-between mb-lg border-b border-outline-variant pb-md"
   >
@@ -50,6 +50,16 @@ import PreviewSection from "./PreviewSection.astro";
     />
 
     <PreviewSection
+      icon="contact_mail"
+      title="Contacto Principal"
+      fields={[
+        { id: "field-contact-name", label: "Nombre" },
+        { id: "field-contact-email", label: "Correo Electrónico" },
+        { id: "field-contact-title", label: "Cargo" },
+      ]}
+    />
+
+    <PreviewSection
       icon="engineering"
       title="Detalles del proyecto"
       fields={[
@@ -57,16 +67,6 @@ import PreviewSection from "./PreviewSection.astro";
         { id: "field-project-value", label: "Valor Estimado (USD)" },
         { id: "field-project-start", label: "Fecha de Inicio Estimada" },
         { id: "field-project-stage", label: "Etapa del Proyecto" },
-      ]}
-    />
-
-    <PreviewSection
-      icon="contact_mail"
-      title="Contacto Principal"
-      fields={[
-        { id: "field-contact-name", label: "Nombre" },
-        { id: "field-contact-email", label: "Correo Electrónico" },
-        { id: "field-contact-title", label: "Cargo" },
       ]}
     />
 

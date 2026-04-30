@@ -4,16 +4,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHeader from "../components/PageHeader.astro";
 import DropZone from "../components/DropZone.astro";
 import DataPreviewCard from "../components/DataPreviewCard.astro";
+import PDFViewer from "../components/PDFViewer.astro";
 ---
 
 <BaseLayout>
-  <main class="w-full max-w-4xl mx-auto space-y-lg">
-    <!-- Header Section -->
+  <main
+    class="w-full max-w-7xl mx-auto space-y-lg transition-all duration-500"
+    id="main-container"
+  >
     <PageHeader />
-    <!-- Interactive Drag & Drop Area -->
     <DropZone />
-    <!-- Feature Grid (Visualizing the 'AI Extraction' Benefit) -->
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-lg pt-lg">
+
+    <!-- Feature Grid (se oculta en modo revisión) -->
+    <section
+      id="feature-grid"
+      class="grid grid-cols-1 md:grid-cols-4 gap-lg pt-lg"
+    >
       <div
         class="bg-surface-container-high p-md rounded-2xl flex flex-col gap-sm border border-transparent hover:border-primary-container transition-colors"
       >
@@ -67,7 +73,90 @@ import DataPreviewCard from "../components/DataPreviewCard.astro";
         </p>
       </div>
     </section>
-    
-    <DataPreviewCard />
+
+    <!-- Contenedor normal: aloja el card por defecto -->
+    <div id="preview-normal">
+      <div id="data-card-wrapper">
+        <DataPreviewCard />
+      </div>
+    </div>
+
+    <!-- Split-screen: PDF viewer (izq) + slot para el card (der) - vacío en HTML -->
+    <div id="review-layout" class="hidden gap-xl items-start">
+      <PDFViewer />
+      <div id="review-card-slot" class="flex-1 min-w-0"></div>
+    </div>
   </main>
 </BaseLayout>
+
+<script>
+  const mainContainer = document.getElementById(
+    "main-container",
+  ) as HTMLElement;
+  const featureGrid = document.getElementById("feature-grid") as HTMLElement;
+  const previewNormal = document.getElementById(
+    "preview-normal",
+  ) as HTMLElement;
+  const reviewLayout = document.getElementById("review-layout") as HTMLElement;
+  const reviewCardSlot = document.getElementById(
+    "review-card-slot",
+  ) as HTMLElement;
+  const dataCardWrapper = document.getElementById(
+    "data-card-wrapper",
+  ) as HTMLElement;
+  const pdfViewerPanel = document.getElementById(
+    "pdf-viewer-panel",
+  ) as HTMLElement;
+  const pdfIframe = document.getElementById("pdf-iframe") as HTMLIFrameElement;
+  const placeholder = document.getElementById(
+    "pdf-viewer-placeholder",
+  ) as HTMLElement;
+
+  window.addEventListener("pdf-data-ready", (e: Event) => {
+    const { pdfBlobUrl } = (e as CustomEvent).detail;
+
+    // Ocultar elementos del modo normal
+    featureGrid.classList.add("hidden");
+    previewNormal.classList.add("hidden");
+
+    // Mover el card (única instancia) al slot del split
+    reviewCardSlot.appendChild(dataCardWrapper);
+
+    // Mostrar el split layout
+    reviewLayout.style.display = "grid";
+    reviewLayout.style.gridTemplateColumns = "1fr 1fr";
+    reviewLayout.classList.remove("hidden");
+
+    // Ampliar el contenedor principal
+    mainContainer.classList.replace("max-w-4xl", "max-w-screen-xl");
+
+    // Cargar PDF en el visor
+    pdfViewerPanel.style.display = "flex";
+    if (pdfBlobUrl && pdfIframe) {
+      pdfIframe.src = pdfBlobUrl;
+      placeholder?.classList.add("hidden");
+    }
+  });
+
+  window.addEventListener("preview-reset", () => {
+    // Devolver el card al contenedor normal
+    previewNormal.appendChild(dataCardWrapper);
+
+    // Restablecer visibilidad
+    featureGrid.classList.remove("hidden");
+    previewNormal.classList.remove("hidden");
+    reviewLayout.classList.add("hidden");
+    reviewLayout.style.display = "";
+
+    // Restaurar tamaño
+    mainContainer.classList.replace("max-w-screen-xl", "max-w-4xl");
+
+    // Limpiar visor y liberar memoria
+    if (pdfIframe?.src?.startsWith("blob:")) {
+      URL.revokeObjectURL(pdfIframe.src);
+      pdfIframe.src = "";
+    }
+    pdfViewerPanel.style.display = "";
+    placeholder?.classList.remove("hidden");
+  });
+</script>

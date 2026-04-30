@@ -140,7 +140,10 @@ interface Props {}
       // Si el endpoint de check falla, continúa; Supabase rechazará el duplicado al guardar
     }
 
-    // 3. Mostrar loading inline
+    // 3. Crear Blob URL para el visor de PDF (sin subida al servidor)
+    const pdfBlobUrl = URL.createObjectURL(file);
+
+    // 4. Mostrar loading inline
     showLoading();
 
     try {
@@ -165,6 +168,7 @@ interface Props {}
         result = await res.json();
         if (!res.ok) {
           showIdle();
+          URL.revokeObjectURL(pdfBlobUrl);
           Swal.fire({
             icon: "warning",
             title: "Aviso",
@@ -178,7 +182,7 @@ interface Props {}
       showIdle();
       window.dispatchEvent(
         new CustomEvent("pdf-data-ready", {
-          detail: { ...result, hashExists: hashAlreadyExists },
+          detail: { ...result, hashExists: hashAlreadyExists, pdfBlobUrl },
         }),
       );
     } catch (err: any) {

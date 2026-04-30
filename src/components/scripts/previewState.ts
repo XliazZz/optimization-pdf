@@ -90,4 +90,6 @@ export const resetPreview = () => {
       Confirmar y Guardar
     `;
   }
+
+  window.dispatchEvent(new CustomEvent("preview-reset"));
 };

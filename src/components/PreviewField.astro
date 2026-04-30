@@ -11,17 +11,17 @@ const { id, label, extraClass = "" } = Astro.props;
 <div
   id={id}
   class:list={[
-    "bg-surface-container-lowest p-md rounded-xl border border-outline-variant group relative transition-colors",
+    "bg-surface-container-lowest p-sm rounded-xl border border-outline-variant group relative transition-colors",
     extraClass,
   ]}
 >
-  <label class="font-caption text-caption text-on-surface-variant block mb-xs">
+  <label class="font-bold text-xs text-indigo-700 block mb-xs">
     {label}
   </label>
 
   <div class="preview-read flex items-center justify-between gap-sm">
     <p
-      class="font-body-md text-body-md text-on-surface font-medium preview-value flex-1 cursor-pointer"
+      class="font-body-md text-body-md text-on-surface font-medium preview-value flex-1 cursor-pointer break-all"
     >
       —
     </p>
