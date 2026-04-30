@@ -38,6 +38,13 @@ export const startBatch = async (files: File[]) => {
     // Esperar a que el primer item termine
     await processItem(0);
 
+    // Si el primero falló, no entramos en el modo revisión (side-by-side)
+    if (batchQueue[0].status === 'error') {
+        // Limpiamos y volvemos al estado inicial del DropZone
+        resetPreview();
+        return;
+    }
+
     // Despachar evento para cambiar a la vista de revisión (split screen)
     window.dispatchEvent(
       new CustomEvent("batch-review-started", {
