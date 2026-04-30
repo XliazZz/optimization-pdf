@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colores — sin cambios */
+  --color-primary: #4648d4;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #6063ee;
+  --color-on-primary-container: #fffbff;
+  --color-primary-fixed: #e1e0ff;
+  --color-surface: #fcf8ff;
+  --color-background: #fcf8ff;
+  --color-on-surface: #1b1b23;
+  --color-on-surface-variant: #464554;
+  --color-surface-container: #efecf8;
+  --color-surface-container-low: #f5f2fe;
+  --color-surface-container-high: #e9e6f3;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-highest: #e4e1ed;
+  --color-outline: #767586;
+  --color-outline-variant: #c7c4d7;
+  --color-secondary: #5c5f60;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #dee0e2;
+  --color-on-secondary-container: #606365;
+  --color-tertiary: #904900;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #b55d00;
+  --color-on-tertiary-container: #fffbff;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-surface-dim: #dbd8e4;
+  --color-surface-bright: #fcf8ff;
+  --color-surface-tint: #494bd6;
+  --color-surface-variant: #e4e1ed;
+  --color-inverse-surface: #303038;
+  --color-inverse-on-surface: #f2effb;
+  --color-inverse-primary: #c0c1ff;
+  --color-primary-fixed-dim: #c0c1ff;
+  --color-on-primary-fixed: #07006c;
+  --color-on-primary-fixed-variant: #2f2ebe;
+
+  /* Spacing — sin cambios */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  --spacing-gutter: 24px;
+  --spacing-margin: 32px;
+  --spacing-unit: 4px;
+
+  /* Tipografía — namespace correcto para v4 */
+
+  /* text-{scale} → --text-{scale} */
+  --text-h1: 40px;
+  --text-h2: 32px;
+  --text-h3: 24px;
+  --text-body-lg: 18px;
+  --text-body-md: 16px;
+  --text-label-sm: 14px;
+  --text-caption: 12px;
+
+  /* font-{family} → --font-family-{name} */
+  --font-h1: "Plus Jakarta Sans", sans-serif;
+  --font-h2: "Plus Jakarta Sans", sans-serif;
+  --font-h3: "Plus Jakarta Sans", sans-serif;
+  --font-body-lg: "Plus Jakarta Sans", sans-serif;
+  --font-body-md: "Plus Jakarta Sans", sans-serif;
+  --font-label-sm: "Plus Jakarta Sans", sans-serif;
+  --font-caption: "Plus Jakarta Sans", sans-serif;
+
+  /* border-radius */
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+}
+
+/* Line-height, letter-spacing y font-weight no tienen utilidades
+   directas en v4 para escalas custom — usá @layer utilities */
+@layer utilities {
+  .text-h1 {
+    font-size: var(--text-h1);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+  .text-h2 {
+    font-size: var(--text-h2);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+  .text-h3 {
+    font-size: var(--text-h3);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+  .text-body-lg {
+    font-size: var(--text-body-lg);
+    line-height: 1.6;
+    font-weight: 400;
+  }
+  .text-body-md {
+    font-size: var(--text-body-md);
+    line-height: 1.6;
+    font-weight: 400;
+  }
+  .text-label-sm {
+    font-size: var(--text-label-sm);
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+  .text-caption {
+    font-size: var(--text-caption);
+    line-height: 1.4;
+    font-weight: 500;
+  }
+}

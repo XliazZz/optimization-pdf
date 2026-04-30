@@ -1,0 +1,198 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  extraClass?: string;
+}
+
+const { id, label, extraClass = "" } = Astro.props;
+---
+
+<div
+  id={id}
+  class:list={[
+    "bg-surface-container-lowest p-md rounded-xl border border-outline-variant group relative transition-colors",
+    extraClass,
+  ]}
+>
+  <label class="font-caption text-caption text-on-surface-variant block mb-xs">
+    {label}
+  </label>
+
+  <div class="preview-read flex items-center justify-between gap-sm">
+    <p
+      class="font-body-md text-body-md text-on-surface font-medium preview-value flex-1 cursor-pointer"
+    >
+      —
+    </p>
+    <button
+      type="button"
+      class="preview-edit-btn opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-on-surface-variant hover:text-primary p-xs rounded-lg hover:bg-surface-container"
+      aria-label={`Editar ${label}`}
+    >
+      <span
+        class="material-symbols-outlined"
+        style="font-size: 16px; font-variation-settings: 'FILL' 0;"
+      >
+        edit
+      </span>
+    </button>
+  </div>
+
+  <div class="preview-edit hidden">
+    <input
+      type="text"
+      class="preview-input w-full font-body-md text-body-md text-on-surface font-medium bg-transparent outline-none border-b border-primary pb-xs mb-sm"
+    />
+
+    <div class="flex gap-xs justify-end pt-2">
+      <button
+        type="button"
+        class="preview-confirm-edit flex items-center gap-xs px-sm py-sm rounded-lg bg-primary text-on-primary font-caption text-caption hover:bg-opacity-90 hover:bg-indigo-500 transition-colors cursor-pointer"
+        aria-label="Confirmar edición"
+      >
+        <span
+          class="material-symbols-outlined"
+          style="font-size: 14px; font-variation-settings: 'FILL' 1;"
+        >
+          check
+        </span>
+        Confirmar
+      </button>
+      <button
+        type="button"
+        class="preview-cancel-edit flex items-center gap-xs px-sm py-xs rounded-lg bg-surface-container-high text-on-surface font-caption text-caption hover:bg-surface-container-highest transition-colors cursor-pointer"
+        aria-label="Cancelar edición"
+      >
+        <span
+          class="material-symbols-outlined"
+          style="font-size: 14px; font-variation-settings: 'FILL' 0;"
+        >
+          close
+        </span>
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-5px);
+    }
+    40% {
+      transform: translateX(5px);
+    }
+    60% {
+      transform: translateX(-4px);
+    }
+    80% {
+      transform: translateX(4px);
+    }
+  }
+  .field-shake {
+    animation: shake 0.35s ease-in-out;
+    border-color: var(--color-error, #b3261e) !important;
+  }
+</style>
+
+<script>
+  import { updateField, showConfirmButton } from "./scripts/previewState";
+  import {
+    registerField,
+    requestOpen,
+    notifyClose,
+  } from "./scripts/fieldEditManager";
+
+  document.querySelectorAll("[id^='field-']").forEach((fieldEl) => {
+    const fieldId = fieldEl.id;
+    const readView = fieldEl.querySelector(".preview-read") as HTMLElement;
+    const editView = fieldEl.querySelector(".preview-edit") as HTMLElement;
+    const valueEl = fieldEl.querySelector(".preview-value") as HTMLElement;
+    const input = fieldEl.querySelector(".preview-input") as HTMLInputElement;
+    const editBtn = fieldEl.querySelector(
+      ".preview-edit-btn",
+    ) as HTMLButtonElement;
+    const confirmBtn = fieldEl.querySelector(
+      ".preview-confirm-edit",
+    ) as HTMLButtonElement;
+    const cancelBtn = fieldEl.querySelector(
+      ".preview-cancel-edit",
+    ) as HTMLButtonElement;
+
+    if (
+      !readView ||
+      !editView ||
+      !valueEl ||
+      !input ||
+      !editBtn ||
+      !confirmBtn ||
+      !cancelBtn
+    )
+      return;
+
+    let originalValue = "";
+
+    const openEdit = () => {
+      if (!requestOpen(fieldId)) return;
+
+      const current = valueEl.textContent?.trim() ?? "";
+      originalValue = current === "—" ? "" : current;
+      input.value = originalValue;
+
+      readView.classList.add("hidden");
+      editView.classList.remove("hidden");
+      input.focus();
+      input.select();
+    };
+
+    const closeEdit = () => {
+      editView.classList.add("hidden");
+      readView.classList.remove("hidden");
+      notifyClose(fieldId);
+    };
+
+    const applyEdit = () => {
+      const newValue = input.value.trim();
+      const changed = newValue !== originalValue;
+      valueEl.textContent = newValue !== "" ? newValue : "—";
+      updateField(fieldId, newValue !== "" ? newValue : null);
+      if (changed) showConfirmButton();
+      closeEdit();
+    };
+
+    const shake = () => {
+      const el = fieldEl as HTMLElement;
+      el.classList.remove("field-shake");
+      void el.offsetWidth;
+      el.classList.add("field-shake");
+      input.focus();
+      el.addEventListener(
+        "animationend",
+        () => el.classList.remove("field-shake"),
+        { once: true },
+      );
+    };
+
+    registerField(fieldId, {
+      applyEdit,
+      closeEdit,
+      hasChanges: () => input.value.trim() !== originalValue,
+      shake,
+    });
+
+    valueEl.addEventListener("click", openEdit);
+    editBtn.addEventListener("click", openEdit);
+    confirmBtn.addEventListener("click", applyEdit);
+    cancelBtn.addEventListener("click", closeEdit);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") applyEdit();
+      if (e.key === "Escape") closeEdit();
+    });
+  });
+</script>

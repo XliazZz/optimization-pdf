@@ -1,0 +1,213 @@
+---
+interface Props {}
+---
+
+<section
+  class="bg-surface-container-lowest rounded-3xl p-md border border-outline-variant shadow-lg"
+>
+  <div class="relative group" id="drop-zone">
+    <div
+      class="absolute -inset-1 bg-linear-to-r from-primary-container to-surface-tint rounded-4xl blur opacity-10 group-hover:opacity-20 transition duration-500"
+    >
+    </div>
+
+    <!-- Vista normal -->
+    <div
+      id="dropzone-idle"
+      class="relative flex flex-col items-center justify-center min-h-[400px] bg-background border-2 border-dashed border-primary-container rounded-2xl p-xl text-center transition-all duration-300 hover:bg-surface-container-low hover:border-primary cursor-grab"
+    >
+      <input type="file" id="file-input" accept=".pdf" class="hidden" />
+
+      <div class="mb-lg">
+        <div
+          class="w-22 h-22 bg-primary-fixed rounded-full flex items-center justify-center mb-md mx-auto ring-8 ring-surface-container-low"
+        >
+          <span
+            class="material-symbols-outlined text-primary"
+            style="font-variation-settings: 'FILL' 0; font-size: 42px;"
+          >
+            cloud_upload
+          </span>
+        </div>
+        <div class="space-y-xs">
+          <p class="font-h2 text-h3 text-on-background">Arrastra tu PDF aquí</p>
+          <p class="font-body-sm text-sm text-on-surface-variant">
+            Soporta archivos hasta 25MB
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-md w-full px-56 mb-lg">
+        <div class="flex-1 border-t border-outline-variant"></div>
+        <span class="text-label-sm text-outline uppercase">o</span>
+        <div class="flex-1 border-t border-outline-variant"></div>
+      </div>
+
+      <button
+        id="select-btn"
+        class="inline-flex items-center gap-md px-xl py-md bg-white border border-outline-variant rounded-xl font-label-md text-primary shadow-sm hover:bg-primary-fixed hover:border-primary-container transition-all active:scale-95 group/btn cursor-pointer"
+      >
+        <span
+          class="material-symbols-outlined group-hover/btn:scale-110 transition-transform"
+        >
+          picture_as_pdf
+        </span>
+        Seleccionar archivo
+      </button>
+    </div>
+
+    <!-- Vista de carga: honesta y genérica -->
+    <div
+      id="dropzone-loading"
+      class="relative hidden flex flex-col items-center justify-center min-h-[400px] bg-background border-2 border-dashed border-primary-container rounded-2xl p-xl text-center"
+    >
+      <div class="flex flex-col items-center gap-lg">
+        <div
+          class="w-16 h-16 rounded-full border-4 border-primary-container border-t-primary animate-spin"
+        >
+        </div>
+        <div class="space-y-xs">
+          <p class="font-h2 text-h3 text-on-background">Analizando documento</p>
+          <p class="font-body-sm text-sm text-on-surface-variant">
+            La IA está leyendo el PDF y extrayendo los datos.<br />
+            Esto puede tardar unos segundos.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import Swal from "sweetalert2";
+
+  const dropZone = document.getElementById("drop-zone");
+  const fileInput = document.getElementById("file-input") as HTMLInputElement;
+  const selectBtn = document.getElementById("select-btn");
+  const idleView = document.getElementById("dropzone-idle");
+  const loadingView = document.getElementById("dropzone-loading");
+
+  const showLoading = () => {
+    idleView?.classList.add("hidden");
+    loadingView?.classList.remove("hidden");
+  };
+
+  const showIdle = () => {
+    loadingView?.classList.add("hidden");
+    idleView?.classList.remove("hidden");
+  };
+
+  // Calcula SHA-256 del archivo en el cliente (Web Crypto API, sin librerías)
+  const hashFile = async (buffer: ArrayBuffer): Promise<string> => {
+    const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+    return Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  };
+
+  const processFile = async (file: File) => {
+    if (file.type !== "application/pdf") {
+      Swal.fire({
+        icon: "error",
+        title: "Formato inválido",
+        text: "Por favor subí solo archivos PDF.",
+        confirmButtonColor: "var(--color-primary)",
+      });
+      return;
+    }
+
+    // 1. Calcular hash en el cliente
+    const arrayBuffer = await file.arrayBuffer();
+    const fileHash = await hashFile(arrayBuffer);
+
+    // 2. Verificar duplicado ANTES de llamar a la IA (evita gastar tokens)
+    let hashAlreadyExists = false;
+    try {
+      const checkRes = await fetch(`/api/check-hash?hash=${fileHash}`);
+      const checkData = await checkRes.json();
+      if (checkData.exists) {
+        hashAlreadyExists = true;
+        Swal.fire({
+          icon: "info",
+          title: "PDF ya registrado",
+          text: "Este documento ya fue procesado. Mostrando los datos guardados para revisión.",
+          confirmButtonColor: "var(--color-primary)",
+          timer: 3500,
+          timerProgressBar: true,
+        });
+      }
+    } catch {
+      // Si el endpoint de check falla, continúa; Supabase rechazará el duplicado al guardar
+    }
+
+    // 3. Mostrar loading inline
+    showLoading();
+
+    try {
+      let result: Record<string, any>;
+
+      if (hashAlreadyExists) {
+        // PDF ya registrado: traer datos actualizados desde Supabase (no gastar tokens de IA)
+        const res = await fetch(`/api/get-lead-by-hash?hash=${fileHash}`);
+        result = await res.json();
+        if (!res.ok)
+          throw new Error(result.error || "Error al obtener datos de la BD");
+      } else {
+        // PDF nuevo: procesar con Gemini
+        const formData = new FormData();
+        formData.append("pdf", file);
+        formData.append("fileHash", fileHash);
+
+        const res = await fetch("/api/process-pdf", {
+          method: "POST",
+          body: formData,
+        });
+        result = await res.json();
+        if (!res.ok) {
+          showIdle();
+          Swal.fire({
+            icon: "warning",
+            title: "Aviso",
+            text: result.error || "Hubo un problema al procesar el PDF.",
+            confirmButtonColor: "var(--color-primary)",
+          });
+          return;
+        }
+      }
+
+      showIdle();
+      window.dispatchEvent(
+        new CustomEvent("pdf-data-ready", {
+          detail: { ...result, hashExists: hashAlreadyExists },
+        }),
+      );
+    } catch (err: any) {
+      showIdle();
+      Swal.fire({
+        icon: "error",
+        title: "Error de conexión",
+        text: err?.message || "No se pudo conectar con el servidor.",
+        confirmButtonColor: "var(--color-primary)",
+      });
+    }
+  };
+
+  selectBtn?.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files?.[0]) processFile(fileInput.files[0]);
+  });
+
+  dropZone?.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.classList.add("scale-[1.02]", "brightness-110");
+  });
+  dropZone?.addEventListener("dragleave", () => {
+    dropZone.classList.remove("scale-[1.02]", "brightness-110");
+  });
+  dropZone?.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("scale-[1.02]", "brightness-110");
+    const file = e.dataTransfer?.files[0];
+    if (file) processFile(file);
+  });
+</script>

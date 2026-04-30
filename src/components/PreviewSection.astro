@@ -1,0 +1,29 @@
+---
+import SectionHeader from "./ui/SectionHeader.astro";
+import PreviewField from "./PreviewField.astro";
+
+interface Field {
+  id: string;
+  label: string;
+  extraClass?: string;
+}
+
+interface Props {
+  icon: string;
+  title: string;
+  fields: Field[];
+}
+
+const { icon, title, fields } = Astro.props;
+---
+
+<div class="space-y-md">
+  <SectionHeader icon={icon} title={title} />
+  {fields.map((field) => (
+    <PreviewField
+      id={field.id}
+      label={field.label}
+      extraClass={field.extraClass}
+    />
+  ))}
+</div>

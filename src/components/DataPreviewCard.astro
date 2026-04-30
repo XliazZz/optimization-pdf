@@ -1,0 +1,125 @@
+---
+import PreviewSection from "./PreviewSection.astro";
+---
+
+<div
+  id="preview-empty"
+  class="flex flex-col items-center justify-center pt-xl text-center gap-md"
+>
+  <span
+    class="material-symbols-outlined text-on-surface-variant"
+    style="font-size: 48px; font-variation-settings: 'FILL' 0;"
+  >
+    description
+  </span>
+  <p class="font-body-md text-on-surface-variant">
+    Subí un PDF para ver la vista previa aquí.
+  </p>
+</div>
+
+<div id="preview-content" class="hidden mt-20">
+  <div
+    class="flex items-center justify-between mb-lg border-b border-outline-variant pb-md"
+  >
+    <div class="flex items-center gap-sm">
+      <span
+        class="material-symbols-outlined text-primary"
+        style="font-variation-settings: 'FILL' 1;"
+      >
+        dataset
+      </span>
+      <h2 class="font-h2 text-h2 text-on-surface">Vista Previa de Datos</h2>
+    </div>
+    <span
+      class="bg-surface-container-high text-on-surface font-caption text-caption px-sm py-xs rounded-full flex items-center gap-xs"
+    >
+      <span class="w-2 h-2 rounded-full bg-green-300"></span>
+      Extracción Completada
+    </span>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+    <PreviewSection
+      icon="business"
+      title="Información de la empresa"
+      fields={[
+        { id: "field-company-name", label: "Razón Social" },
+        { id: "field-company-country", label: "País" },
+        { id: "field-company-website", label: "Sitio Web" },
+      ]}
+    />
+
+    <PreviewSection
+      icon="engineering"
+      title="Detalles del proyecto"
+      fields={[
+        { id: "field-project-name", label: "Nombre del Proyecto" },
+        { id: "field-project-value", label: "Valor Estimado (USD)" },
+        { id: "field-project-start", label: "Fecha de Inicio Estimada" },
+        { id: "field-project-stage", label: "Etapa del Proyecto" },
+      ]}
+    />
+
+    <PreviewSection
+      icon="contact_mail"
+      title="Contacto Principal"
+      fields={[
+        { id: "field-contact-name", label: "Nombre" },
+        { id: "field-contact-email", label: "Correo Electrónico" },
+        { id: "field-contact-title", label: "Cargo" },
+      ]}
+    />
+
+    <PreviewSection
+      icon="task_alt"
+      title="Tarea de Seguimiento"
+      fields={[
+        {
+          id: "field-task-description",
+          label: "Descripción",
+          extraClass: "h-auto",
+        },
+      ]}
+    />
+  </div>
+
+  <div
+    class="mt-xl pt-lg border-t border-outline-variant flex justify-end gap-md"
+  >
+    <button
+      id="btn-cancel"
+      class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-lg py-md rounded-xl hover:bg-surface-container-highest transition-colors shadow-sm focus:outline-none cursor-pointer"
+      type="button"
+    >
+      Cancelar
+    </button>
+    <button
+      id="btn-confirm"
+      class="bg-primary text-on-primary font-label-sm text-label-sm px-xl py-md rounded-xl hover:bg-opacity-90 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex items-center gap-sm lift-shadow cursor-pointer hover:bg-indigo-500 hover:shadow-lg"
+      type="button"
+    >
+      <span
+        class="material-symbols-outlined text-sm"
+        style="font-variation-settings: 'FILL' 1;"
+      >
+        save
+      </span>
+      Confirmar y Guardar
+    </button>
+  </div>
+</div>
+
+<script>
+  import { showPreview } from "./scripts/previewState";
+  import {
+    initCancelButton,
+    initConfirmButton,
+  } from "./scripts/previewActions";
+
+  initCancelButton();
+  initConfirmButton();
+
+  window.addEventListener("pdf-data-ready", (e: Event) => {
+    showPreview((e as CustomEvent).detail);
+  });
+</script>

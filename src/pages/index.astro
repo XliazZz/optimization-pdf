@@ -1,0 +1,73 @@
+---
+import "../styles/global.css";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHeader from "../components/PageHeader.astro";
+import DropZone from "../components/DropZone.astro";
+import DataPreviewCard from "../components/DataPreviewCard.astro";
+---
+
+<BaseLayout>
+  <main class="w-full max-w-4xl mx-auto space-y-lg">
+    <!-- Header Section -->
+    <PageHeader />
+    <!-- Interactive Drag & Drop Area -->
+    <DropZone />
+    <!-- Feature Grid (Visualizing the 'AI Extraction' Benefit) -->
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-lg pt-lg">
+      <div
+        class="bg-surface-container-high p-md rounded-2xl flex flex-col gap-sm border border-transparent hover:border-primary-container transition-colors"
+      >
+        <span
+          class="material-symbols-outlined text-primary"
+          data-icon="business">business</span
+        >
+        <p class="font-label-md text-label-md text-on-background">Empresa</p>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">
+          Identificación automática de contratistas.
+        </p>
+      </div>
+      <div
+        class="bg-surface-container-high p-md rounded-2xl flex flex-col gap-sm border border-transparent hover:border-primary-container transition-colors"
+      >
+        <span
+          class="material-symbols-outlined text-primary"
+          data-icon="person_search">person_search</span
+        >
+        <p class="font-label-md text-label-md text-on-background">Contacto</p>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">
+          Extracción de responsables y roles.
+        </p>
+      </div>
+      <div
+        class="bg-surface-container-high p-md rounded-2xl flex flex-col gap-sm border border-transparent hover:border-primary-container transition-colors"
+      >
+        <span
+          class="material-symbols-outlined text-primary"
+          data-icon="engineering">engineering</span
+        >
+        <p class="font-label-md text-label-md text-on-background">
+          Jefe de Obra
+        </p>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">
+          Asignación directa a proyectos.
+        </p>
+      </div>
+      <div
+        class="bg-surface-container-high p-md rounded-2xl flex flex-col gap-sm border border-transparent hover:border-primary-container transition-colors"
+      >
+        <span
+          class="material-symbols-outlined text-primary"
+          data-icon="assignment_turned_in">assignment_turned_in</span
+        >
+        <p class="font-label-md text-label-md text-on-background">
+          Seguimiento
+        </p>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">
+          Creación de tareas en tiempo real.
+        </p>
+      </div>
+    </section>
+    
+    <DataPreviewCard />
+  </main>
+</BaseLayout>
