@@ -1,6 +1,6 @@
 # 🏗️ DataExtract AI: Construcción & Leads Dashboard
 
-Plataforma inteligente de extracción de datos para proyectos de construcción, impulsada por **Gemini 1.5 Flash** y **Supabase**.
+Plataforma inteligente de extracción de datos para proyectos de construcción, impulsada por **Gemini 2.5 Flash** y **Supabase**.
 
 ![Status](https://img.shields.io/badge/Status-Complete-success)
 ![Stack](https://img.shields.io/badge/Stack-Astro--Supabase--Gemini-blue)

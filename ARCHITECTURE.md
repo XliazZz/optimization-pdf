@@ -1,11 +1,9 @@
 # Arquitectura Técnica: DataExtract AI Dashboard
 
-Esta guía explica el funcionamiento interno del proyecto para que puedas defenderlo técnicamente en cualquier entrevista.
-
 ## 1. Stack Tecnológico
 
 - **Astro**: Framework de frontend elegido por su rendimiento y manejo de islas de interactividad.
-- **Tailwind CSS**: Para un diseño responsivo y moderno (usando variables de color de Material 3).
+- **Tailwind CSS**: Para un diseño responsivo y moderno (usando variables de color).
 - **Supabase**: Backend-as-a-Service para persistencia de datos y gestión de leads.
 - **Gemini 2.0/2.5 Flash**: Orquestación de IA para extracción y validación de datos.
 
