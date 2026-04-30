@@ -1,0 +1,229 @@
+---
+// src/components/LeadsTable.astro
+---
+
+<div
+  class="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm flex flex-col h-full"
+>
+  <div
+    class="p-md border-b border-outline-variant flex items-center justify-between gap-md flex-wrap"
+  >
+    <div class="relative flex-1 min-w-[200px] max-w-sm">
+      <span
+        class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"
+        style="font-variation-settings: 'FILL' 0;"
+      >
+        search
+      </span>
+      <input
+        type="text"
+        id="search-leads"
+        placeholder="Buscar por proyecto o empresa..."
+        class="w-full bg-surface-container-low border border-transparent focus:border-primary rounded-xl py-xs pl-xl pr-sm font-body-sm text-on-surface outline-none transition-colors"
+      />
+    </div>
+
+    <div class="flex items-center gap-sm">
+      <button
+        id="btn-refresh-leads"
+        class="p-xs text-on-surface-variant hover:text-primary hover:bg-surface-container-high rounded-lg transition-colors flex items-center justify-center cursor-pointer"
+        title="Actualizar tabla"
+      >
+        <span
+          class="material-symbols-outlined text-sm"
+          style="font-variation-settings: 'FILL' 0;">refresh</span
+        >
+      </button>
+
+      <button
+        id="btn-export-csv"
+        class="flex items-center gap-xs px-sm py-xs bg-surface-container-high text-on-surface-variant rounded-lg font-label-sm hover:bg-surface-container-highest transition-colors cursor-pointer"
+      >
+        <span
+          class="material-symbols-outlined text-xs"
+          style="font-variation-settings: 'FILL' 0;">download</span
+        >
+        Exportar CSV
+      </button>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-outline-variant bg-surface-container-lowest">
+          <th
+            class="p-sm font-label-sm text-on-surface-variant whitespace-nowrap"
+            >Fecha</th
+          >
+          <th
+            class="p-sm font-label-sm text-on-surface-variant whitespace-nowrap"
+            >Proyecto</th
+          >
+          <th
+            class="p-sm font-label-sm text-on-surface-variant whitespace-nowrap"
+            >Empresa</th
+          >
+          <th
+            class="p-sm font-label-sm text-on-surface-variant whitespace-nowrap"
+            >Valor Est.</th
+          >
+          <th
+            class="p-sm font-label-sm text-on-surface-variant whitespace-nowrap"
+            >Etapa</th
+          >
+        </tr>
+      </thead>
+      <tbody id="leads-table-body">
+        <tr>
+          <td
+            colspan="5"
+            class="p-xl text-center text-on-surface-variant font-body-sm"
+          >
+            <span
+              class="material-symbols-outlined animate-spin text-primary block mb-sm mx-auto"
+              style="font-variation-settings:'FILL' 1; font-size: 32px"
+              >progress_activity</span
+            >
+            Cargando leads...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let leadsData: any[] = [];
+
+  const tbody = document.getElementById("leads-table-body")!;
+  const searhInput = document.getElementById(
+    "search-leads",
+  ) as HTMLInputElement;
+  const btnRefresh = document.getElementById("btn-refresh-leads")!;
+  const btnExport = document.getElementById("btn-export-csv")!;
+
+  const formatDate = (isoString: string) => {
+    if (!isoString) return "—";
+    const date = new Date(isoString);
+    return date.toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatCurrency = (val: number | null) => {
+    if (val == null) return "—";
+    return `USD ${Number(val).toLocaleString("es-AR")}`;
+  };
+
+  const renderTable = (data: any[]) => {
+    if (data.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="p-xl text-center text-on-surface-variant font-body-sm">
+             <span class="material-symbols-outlined block mb-sm text-on-surface-variant" style="font-size: 32px">inbox</span>
+             No se encontraron proyectos.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = data
+      .map(
+        (lead) => `
+      <tr class="border-b border-outline-variant last:border-0 hover:bg-surface-container-lowest/50 transition-colors">
+        <td class="p-sm font-body-sm text-on-surface-variant whitespace-nowrap">${formatDate(lead.created_at)}</td>
+        <td class="p-sm font-body-sm text-on-surface font-medium max-w-[200px] truncate" title="${lead.project_name || ""}">${lead.project_name || "—"}</td>
+        <td class="p-sm font-body-sm text-on-surface-variant max-w-[150px] truncate" title="${lead.company?.name || ""}">${lead.company?.name || "—"}</td>
+        <td class="p-sm font-body-sm text-on-surface font-medium whitespace-nowrap text-green-700">${formatCurrency(lead.estimated_value)}</td>
+        <td class="p-sm whitespace-nowrap">
+          <span class="inline-flex items-center px-xs py-[2px] rounded-md font-label-sm text-[11px] bg-primary-container text-on-primary-container">
+            ${lead.project_stage || "Desconocida"}
+          </span>
+        </td>
+      </tr>
+    `,
+      )
+      .join("");
+  };
+
+  const fetchLeads = async () => {
+    try {
+      tbody.innerHTML = `<tr><td colspan="5" class="p-xl text-center text-on-surface-variant font-body-sm"><span class="material-symbols-outlined animate-spin text-primary block mb-sm mx-auto" style="font-variation-settings:'FILL' 1; font-size: 32px">progress_activity</span>Cargando...</td></tr>`;
+      const res = await fetch("/api/get-all-leads");
+      if (!res.ok) throw new Error("Error fetching leads");
+      leadsData = await res.json();
+
+      // Aplicar filtro si existe
+      filterAndRender();
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="5" class="p-xl text-center text-error font-body-sm">Error al cargar datos.</td></tr>`;
+    }
+  };
+
+  const filterAndRender = () => {
+    const query = searhInput.value.toLowerCase().trim();
+    if (!query) {
+      renderTable(leadsData);
+      return;
+    }
+    const filtered = leadsData.filter(
+      (lead) =>
+        (lead.project_name || "").toLowerCase().includes(query) ||
+        (lead.company?.name || "").toLowerCase().includes(query),
+    );
+    renderTable(filtered);
+  };
+
+  const exportCSV = () => {
+    if (leadsData.length === 0) return;
+
+    // Header
+    let csvContent = "Fecha,Proyecto,Empresa,Contacto,Valor Estimado,Etapa\n";
+
+    // Filas
+    leadsData.forEach((lead) => {
+      const row = [
+        formatDate(lead.created_at),
+        `"${(lead.project_name || "").replace(/"/g, '""')}"`,
+        `"${(lead.company?.name || "").replace(/"/g, '""')}"`,
+        `"${(lead.contact?.full_name || "").replace(/"/g, '""')}"`,
+        lead.estimated_value || 0,
+        `"${(lead.project_stage || "").replace(/"/g, '""')}"`,
+      ];
+      csvContent += row.join(",") + "\n";
+    });
+
+    // Descarga
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `Leads_Extraccion_${new Date().toISOString().split("T")[0]}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Listeners
+  searhInput.addEventListener("input", filterAndRender);
+  btnRefresh.addEventListener("click", fetchLeads);
+  btnExport.addEventListener("click", exportCSV);
+
+  // Cargar al montar o al mostrar la vista
+  fetchLeads();
+  window.addEventListener("change-view", (e: Event) => {
+    const { viewId } = (e as CustomEvent).detail;
+    if (viewId === "view-history") {
+      fetchLeads(); // Refrescar si el usuario subió uno nuevo
+    }
+  });
+</script>

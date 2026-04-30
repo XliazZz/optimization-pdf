@@ -1,0 +1,122 @@
+---
+const navItems = [
+  {
+    id: "nav-extract",
+    view: "view-extract",
+    icon: "add_circle",
+    label: "Nueva Extracción",
+    active: true,
+  },
+  {
+    id: "nav-history",
+    view: "view-history",
+    icon: "database",
+    label: "Historial de Leads",
+    active: false,
+  },
+  {
+    id: "nav-analytics",
+    view: "view-analytics",
+    icon: "analytics",
+    label: "Estadísticas",
+    active: false,
+  },
+];
+---
+
+<aside
+  class="w-64 h-screen fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant flex flex-col z-50"
+>
+  <div class="p-lg flex items-center gap-sm border-b border-outline-variant/50">
+    <div
+      class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm"
+    >
+      <span
+        class="material-symbols-outlined text-on-primary"
+        style="font-variation-settings: 'FILL' 1;"
+      >
+        bolt
+      </span>
+    </div>
+    <h1 class="font-h3 text-h3 text-on-surface">DataExtract</h1>
+  </div>
+
+  <nav class="flex-1 p-md flex flex-col gap-xs mt-md">
+    {
+      navItems.map((item) => (
+        <button
+          id={item.id}
+          class={`nav-btn w-full flex items-center gap-sm px-md py-sm rounded-xl font-label-md transition-all ${
+            item.active
+              ? "bg-indigo-50 text-indigo-600 font-semibold"
+              : "text-on-surface-variant hover:bg-surface-container  font-semibold"
+          }`}
+          data-view={item.view}
+        >
+          <span
+            class="material-symbols-outlined nav-icon"
+            style={item.active ? "font-variation-settings: 'FILL' 1;" : ""}
+          >
+            {item.icon}
+          </span>
+          {item.label}
+        </button>
+      ))
+    }
+  </nav>
+
+  <div class="p-lg border-t border-outline-variant/50">
+    <div class="flex items-center gap-sm">
+      <div
+        class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center"
+      >
+        <span class="material-symbols-outlined text-on-surface-variant text-sm">
+          person
+        </span>
+      </div>
+      <div>
+        <p class="font-label-sm text-on-surface">Admin</p>
+        <p class="font-body-sm text-xs text-on-surface-variant">Workspace</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<script>
+  // Script para manejar el cambio visual en la Sidebar y disparar evento de cambio de vista
+  const navBtns = document.querySelectorAll(".nav-btn");
+
+  navBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const viewId = target.getAttribute("data-view");
+
+      // 1. Limpiar estilos activos de todos los botones
+      navBtns.forEach((b) => {
+        b.classList.remove("bg-indigo-50", "text-indigo-600", "font-semibold");
+        b.classList.add(
+          "text-on-surface-variant",
+          "hover:bg-surface-container",
+          "font-semibold",
+        );
+        const icon = b.querySelector(".nav-icon");
+        if (icon) icon.setAttribute("style", "");
+      });
+
+      // 2. Aplicar estilos activos al botón clickeado
+      target.classList.remove(
+        "text-on-surface-variant",
+        "hover:bg-surface-container",
+      );
+      target.classList.add("bg-indigo-50", "text-indigo-600", "font-semibold");
+      const targetIcon = target.querySelector(".nav-icon");
+      if (targetIcon)
+        targetIcon.setAttribute("style", "font-variation-settings: 'FILL' 1;");
+
+      // 3. Emitir evento global para cambiar la vista en main
+      window.dispatchEvent(
+        new CustomEvent("change-view", { detail: { viewId } }),
+      );
+    });
+  });
+</script>

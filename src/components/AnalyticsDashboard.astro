@@ -1,0 +1,252 @@
+---
+// src/components/AnalyticsDashboard.astro
+---
+
+<div class="flex flex-col gap-lg pb-xl">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+    <!-- Card: Total Pipeline -->
+    <div
+      class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group"
+    >
+      <div
+        class="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full blur-xl group-hover:bg-primary/20 transition-colors"
+      >
+      </div>
+      <div class="relative">
+        <span
+          class="material-symbols-outlined text-primary mb-xs"
+          style="font-variation-settings: 'FILL' 1; font-size: 28px;"
+        >
+          payments
+        </span>
+        <p
+          class="font-label-sm text-on-surface-variant uppercase tracking-wider mb-xs text-xs"
+        >
+          Valor Total Pipeline
+        </p>
+        <p
+          id="stat-pipeline"
+          class="font-h1 text-4xl text-on-surface font-black"
+        >
+          <span class="animate-pulse text-outline-variant">...</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Card: Proyectos Activos -->
+    <div
+      class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group"
+    >
+      <div
+        class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/10 rounded-full blur-xl group-hover:bg-green-500/20 transition-colors"
+      >
+      </div>
+      <div class="relative">
+        <span
+          class="material-symbols-outlined text-green-700 mb-xs"
+          style="font-variation-settings: 'FILL' 1; font-size: 28px;"
+        >
+          account_tree
+        </span>
+        <p
+          class="font-label-sm text-on-surface-variant uppercase tracking-wider mb-xs text-xs"
+        >
+          Proyectos Extraídos
+        </p>
+        <p
+          id="stat-projects"
+          class="font-h1 text-4xl text-on-surface font-black"
+        >
+          <span class="animate-pulse text-outline-variant">...</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Card: Ticket Promedio -->
+    <div
+      class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group"
+    >
+      <div
+        class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-colors"
+      >
+      </div>
+      <div class="relative">
+        <span
+          class="material-symbols-outlined text-amber-700 mb-xs"
+          style="font-variation-settings: 'FILL' 1; font-size: 28px;"
+        >
+          trending_up
+        </span>
+        <p
+          class="font-label-sm text-on-surface-variant uppercase tracking-wider mb-xs text-xs"
+        >
+          Ticket Promedio
+        </p>
+        <p
+          id="stat-average"
+          class="font-h1 text-4xl text-on-surface font-black"
+        >
+          <span class="animate-pulse text-outline-variant">...</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+    <div
+      class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant shadow-sm"
+    >
+      <h3
+        class="font-bold text-lg text-on-surface flex items-center gap-xs mb-md border-b border-outline-variant pb-xs"
+      >
+        <span class="material-symbols-outlined text-indigo-700 text-sm"
+          >flag</span
+        >
+        Proyectos por Etapa
+      </h3>
+      <div id="stat-stages" class="space-y-sm">
+        <div class="animate-pulse h-4 bg-surface-container-high rounded w-3/4">
+        </div>
+        <div class="animate-pulse h-4 bg-surface-container-high rounded w-1/2">
+        </div>
+        <div class="animate-pulse h-4 bg-surface-container-high rounded w-5/6">
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant shadow-sm"
+    >
+      <h3
+        class="font-bold text-lg text-on-surface flex items-center gap-xs mb-md border-b border-outline-variant pb-xs"
+      >
+        <span class="material-symbols-outlined text-indigo-700 text-sm"
+          >schedule</span
+        >
+        Actividad Reciente
+      </h3>
+      <div id="stat-recent" class="space-y-md">
+        <div class="animate-pulse flex items-center gap-sm">
+          <div class="w-8 h-8 rounded bg-surface-container-high"></div>
+          <div class="h-4 bg-surface-container-high rounded flex-1"></div>
+        </div>
+        <div class="animate-pulse flex items-center gap-sm">
+          <div class="w-8 h-8 rounded bg-surface-container-high"></div>
+          <div class="h-4 bg-surface-container-high rounded flex-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let cachedLeads: any[] | null = null;
+
+  const loadAnalytics = async () => {
+    try {
+      if (!cachedLeads) {
+        const res = await fetch("/api/get-all-leads");
+        if (!res.ok) throw new Error("Error fetching leads");
+        cachedLeads = await res.json();
+      }
+
+      const leads = cachedLeads || [];
+      const totalProjects = leads.length;
+
+      let totalValue = 0;
+      let projectsWithValue = 0;
+      const stagesCount: Record<string, number> = {};
+
+      leads.forEach((lead) => {
+        if (lead.estimated_value) {
+          totalValue += Number(lead.estimated_value);
+          projectsWithValue++;
+        }
+
+        const stage = lead.project_stage || "Sin Asignar";
+        stagesCount[stage] = (stagesCount[stage] || 0) + 1;
+      });
+
+      const averageValue =
+        projectsWithValue > 0 ? totalValue / projectsWithValue : 0;
+
+      // Actualizar UI - Stats
+      const formatCurr = (val: number) =>
+        `USD ${val.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
+
+      document.getElementById("stat-pipeline")!.textContent =
+        formatCurr(totalValue);
+      document.getElementById("stat-projects")!.textContent =
+        totalProjects.toString();
+      document.getElementById("stat-average")!.textContent =
+        formatCurr(averageValue);
+
+      // Actualizar UI - Etapas
+      const stagesHtml = Object.entries(stagesCount)
+        .sort((a, b) => b[1] - a[1]) // mayor a menor
+        .map(([stage, count]) => {
+          const percentage = Math.round((count / totalProjects) * 100);
+          return `
+            <div class="flex items-center gap-sm">
+              <span class="font-body-sm text-on-surface-variant w-1/3 truncate" title="${stage}">${stage}</span>
+              <div class="flex-1 bg-surface-container-high h-2 rounded-full overflow-hidden">
+                <div class="bg-indigo-500 h-full rounded-full" style="width: ${percentage}%"></div>
+              </div>
+              <span class="font-label-sm text-on-surface w-8 text-right">${count}</span>
+            </div>
+          `;
+        })
+        .join("");
+
+      document.getElementById("stat-stages")!.innerHTML =
+        stagesHtml ||
+        '<p class="text-on-surface-variant text-sm py-xs">No hay datos suficientes.</p>';
+
+      // Actualizar UI - Recientes (ultimos 5)
+      const recentHtml = leads
+        .slice(0, 5)
+        .map((lead) => {
+          const timeAgo = Math.round(
+            (new Date().getTime() - new Date(lead.created_at).getTime()) /
+              (1000 * 3600 * 24),
+          );
+          const timeStr = timeAgo === 0 ? "Hoy" : `Hace ${timeAgo} días`;
+          return `
+          <div class="flex items-start gap-sm">
+            <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0">
+               <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings:'FILL' 1;">description</span>
+            </div>
+            <div class="min-w-0">
+               <p class="font-label-sm text-on-surface truncate">${lead.project_name || "Proyecto sin nombre"}</p>
+               <p class="font-body-sm text-xs text-on-surface-variant truncate">${lead.company?.name || "Empresa desc."} • ${timeStr}</p>
+            </div>
+          </div>
+        `;
+        })
+        .join("");
+
+      document.getElementById("stat-recent")!.innerHTML =
+        recentHtml ||
+        '<p class="text-on-surface-variant text-sm py-xs">No hay actividad.</p>';
+    } catch (e) {
+      console.error(e);
+      document.getElementById("stat-pipeline")!.textContent = "Error";
+      document.getElementById("stat-projects")!.textContent = "Error";
+      document.getElementById("stat-average")!.textContent = "Error";
+    }
+  };
+
+  // Cargar si estamos en la vista
+  // Invalidar caché cuando se guarda un lead nuevo (reseteando cachedLeads)
+  window.addEventListener("change-view", (e: Event) => {
+    const { viewId } = (e as CustomEvent).detail;
+    if (viewId === "view-analytics") {
+      // Forzar recarga de cache cada vez que se entra, por si hubo un pdf nuevo
+      cachedLeads = null;
+      loadAnalytics();
+    }
+  });
+
+  // Load inicial por si arranca pre-render
+  loadAnalytics();
+</script>

@@ -1,5 +1,6 @@
 ---
-import "../styles/global.css"
+import "../styles/global.css";
+import Sidebar from "../components/Sidebar.astro";
 ---
 
 <!doctype html>
@@ -41,9 +42,13 @@ import "../styles/global.css"
     </style>
   </head>
 
-  <body
-    class="bg-background min-h-screen items-center justify-center p-lg md:p-xl"
-  >
-    <slot />
+  <body class="bg-background min-h-screen flex text-on-surface">
+    <Sidebar />
+    <!-- Contenedor principal que se aleja 64 unidades (256px) del borde izquierdo para alojar la sidebar -->
+    <div
+      class="flex-1 ml-64 p-lg md:p-xl flex flex-col overflow-x-hidden min-h-screen"
+    >
+      <slot />
+    </div>
   </body>
 </html>
