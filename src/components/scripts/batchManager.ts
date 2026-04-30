@@ -8,7 +8,9 @@ export interface BatchItem {
     hashExists: boolean;
     pdfBlobUrl: string;
     error: string | null;
+    errorCode: string | null;
     hash: string | null;
+    _alertShown?: boolean;
 }
 
 export let batchQueue: BatchItem[] = [];
@@ -22,7 +24,9 @@ export const startBatch = async (files: File[]) => {
         hashExists: false,
         pdfBlobUrl: URL.createObjectURL(file),
         error: null,
-        hash: null
+        errorCode: null,
+        hash: null,
+        _alertShown: false
     }));
     currentIndex = 0;
 
@@ -94,7 +98,17 @@ const processItem = async (index: number) => {
         
         if (!res.ok) {
             item.status = 'error';
-            item.error = result.error || 'Error desconocido';
+            item.error = result.message || result.error || 'Error desconocido';
+            item.errorCode = result.error || 'UNKNOWN';
+            
+            // Mostrar alerta solo si es el item actual (para no spamear si hay múltiples errores en lote)
+            if (currentIndex === index) {
+                if (item.errorCode === "QUOTA_EXCEEDED") {
+                    Swal.fire("Límite de la IA excedido", item.error, "error");
+                } else if (item.errorCode === "INVALID_DOMAIN") {
+                    Swal.fire("Documento no válido", item.error, "warning");
+                }
+            }
         } else {
             item.status = 'ready';
             item.data = result;
@@ -103,6 +117,7 @@ const processItem = async (index: number) => {
     } catch (err: any) {
         item.status = 'error';
         item.error = err.message || 'Error de red';
+        item.errorCode = 'NETWORK_ERROR';
     }
 
     if (currentIndex === index && document.getElementById("review-layout")?.style.display === "grid") {
@@ -163,6 +178,19 @@ export const renderCurrentItem = () => {
         content?.classList.add("hidden");
         loading?.classList.remove("hidden");
         loading?.classList.add("flex");
+        
+        // Asegurar que muestre el spinner y no el icono de error de un item anterior
+        const spinner = loading?.querySelector(".material-symbols-outlined.text-error") || loading?.querySelector(".animate-spin");
+        if (spinner) {
+            spinner.className = "w-16 h-16 rounded-full border-4 border-primary-container border-t-primary animate-spin mb-4";
+            spinner.innerHTML = "";
+            (spinner as HTMLElement).style.fontSize = "";
+        }
+        
+        document.getElementById("preview-loading-title")!.textContent = "Analizando documento...";
+        const loadingText = document.querySelector("#preview-loading p:last-child");
+        if (loadingText) loadingText.textContent = "La IA está extrayendo los datos.";
+
     } else if (item.status === 'ready') {
         empty?.classList.add("hidden");
         loading?.classList.add("hidden");
@@ -174,9 +202,29 @@ export const renderCurrentItem = () => {
         content?.classList.add("hidden");
         loading?.classList.remove("hidden");
         loading?.classList.add("flex");
+        
+        // Cambiar icono del loading a error
+        const spinner = loading?.querySelector(".animate-spin");
+        if (spinner) {
+            spinner.className = "material-symbols-outlined text-error mb-4";
+            spinner.innerHTML = "error";
+            (spinner as HTMLElement).style.fontSize = "48px";
+            (spinner as HTMLElement).style.fontVariationSettings = "'FILL' 1";
+        }
+        
         document.getElementById("preview-loading-title")!.textContent = "Error al procesar";
         const loadingText = document.querySelector("#preview-loading p:last-child");
         if (loadingText) loadingText.textContent = item.error || "Inténtalo de nuevo";
+
+        // Si navegamos hacia este item y tiene un error específico, mostrar alerta (si no se mostró ya)
+        if (!item._alertShown) {
+            if (item.errorCode === "QUOTA_EXCEEDED") {
+                Swal.fire("Límite de la IA excedido", item.error, "error");
+            } else if (item.errorCode === "INVALID_DOMAIN") {
+                Swal.fire("Documento no válido", item.error, "warning");
+            }
+            item._alertShown = true;
+        }
     }
 };
 

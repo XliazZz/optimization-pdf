@@ -27,8 +27,11 @@ export const POST = async ({ request }) => {
       5. MONEDAS: Valores numéricos puros, sin símbolos ni puntos de miles. Ejemplo: "USD 2.450.000" → 2450000.
       6. CONSISTENCIA: Usa la versión más completa y formal del nombre de empresa o proyecto.
 
+      7. VALIDACIÓN DE DOMINIO: Evalúa estricta y obligatoriamente si el PDF trata sobre proyectos de construcción, obras, licitaciones o leads relacionados a este rubro. Si el documento NO tiene relación (ej. es un cuento, un currículum, una receta, un manual no relacionado, etc.), debes establecer "is_valid_lead": false y dejar el resto de los campos en null. Si es válido, establece "is_valid_lead": true.
+
       ESQUEMA REQUERIDO:
       {
+        "is_valid_lead": boolean,
         "company": { "name": string, "country": string, "website": string },
         "contact": { "full_name": string, "email": string, "job_title": string },
         "project_lead": { 
@@ -56,14 +59,32 @@ export const POST = async ({ request }) => {
     const response = await result.response;
     const data     = JSON.parse(response.text().replace(/```json|```/g, "").trim());
 
-    return new Response(JSON.stringify({ ...data, fileHash }), {
+    if (data.is_valid_lead === false) {
+      return new Response(JSON.stringify({ error: "INVALID_DOMAIN", message: "El documento no parece ser un lead de construcción." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    return new Response(JSON.stringify(data), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("AI processing error:", error);
+    
+    // Identificar si el error es de tokens/cuota o rate limit
+    const errMsg = error.message?.toLowerCase() || "";
+    if (errMsg.includes("quota") || errMsg.includes("429") || errMsg.includes("rate limit") || errMsg.includes("tokens")) {
+      return new Response(JSON.stringify({ 
+        error: "QUOTA_EXCEEDED", 
+        message: "La IA se ha quedado sin tokens o se ha excedido el límite de uso gratuito. Por favor, intenta de nuevo más tarde." 
+      }), { status: 429, headers: { "Content-Type": "application/json" } });
+    }
+
+    return new Response(JSON.stringify({ error: error.message || "Unknown error" }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
   }
 };
