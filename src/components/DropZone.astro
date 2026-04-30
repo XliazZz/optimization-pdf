@@ -12,7 +12,6 @@ interface Props {}
     >
     </div>
 
-    <!-- Vista normal -->
     <div
       id="dropzone-idle"
       class="relative flex flex-col items-center justify-center min-h-[400px] bg-background border-2 border-dashed border-primary-container rounded-2xl p-xl text-center transition-all duration-300 hover:bg-surface-container-low hover:border-primary cursor-grab"
@@ -57,7 +56,6 @@ interface Props {}
       </button>
     </div>
 
-    <!-- Vista de carga: honesta y genérica -->
     <div
       id="dropzone-loading"
       class="relative hidden flex flex-col items-center justify-center min-h-[400px] bg-background border-2 border-dashed border-primary-container rounded-2xl p-xl text-center"
@@ -161,3 +159,4 @@ interface Props {}
     if (files?.length) processFiles(Array.from(files));
   });
 </script>
+

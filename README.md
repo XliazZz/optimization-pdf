@@ -7,18 +7,20 @@ Plataforma inteligente de extracción de datos para proyectos de construcción, 
 
 ## 🌟 Características Principales
 
+- **Procesamiento por Lotes**: Sube hasta 10 PDFs simultáneamente para procesamiento paralelo.
+- **Asistente de Revisión (Wizard)**: Flujo secuencial interactivo para verificar y editar cada documento antes del guardado final.
 - **Extracción Inteligente**: Convierte informes PDF complejos en datos estructurados (Empresa, Contacto, Valor de Proyecto).
-- **Vista Side-by-Side**: Interfaz de verificación humana donde puedes comparar el PDF original con los datos extraídos en tiempo real.
-- **Dashboard de Gestión**: Visualiza tu pipeline de ventas, estadísticas de proyectos y actividad reciente.
-- **Deduplicación Inteligente**: Sistema de hashing para evitar el re-procesamiento de archivos ya existentes, optimizando costos de API.
-- **Exportación**: Descarga tus leads validados en formato CSV para integrarlos con otros CRM.
+- **Validación de Dominio**: Filtro por IA para asegurar que solo se procesen leads relacionados al rubro de construcción.
+- **Vista Side-by-Side**: Interfaz de verificación humana para comparar el PDF original con los datos extraídos.
+- **Deduplicación Inteligente**: Sistema de hashing SHA-256 para evitar el re-procesamiento de archivos existentes.
+- **Dashboard de Gestión**: Visualización de pipeline de ventas, estadísticas y exportación CSV.
 
 ## 🚀 Tecnologías
 
 - **Frontend**: Astro (Islands Architecture), Tailwind CSS (Material Design 3 system).
-- **IA**: Google Gemini 1.5 Flash API.
-- **Backend/DB**: Supabase (PostgreSQL) con lógica de Row Level Security (RLS) opcional.
-- **Hashing**: SHA-256 para integridad y deduplicación.
+- **IA**: Google Gemini 2.0/2.5 Flash.
+- **Backend/DB**: Supabase (PostgreSQL).
+- **Seguridad**: Manejo de errores de cuota de IA y validación de integridad de documentos.
 
 ## 🛠️ Instalación y Uso
 

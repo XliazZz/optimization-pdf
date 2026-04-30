@@ -66,20 +66,16 @@ export const showPreview = (data: Record<string, any>) => {
   document.getElementById("preview-content")
     ?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  // Botón removido: el batchManager maneja la navegación
-
-  // Actualizar el chip de confianza
   const chip = document.getElementById("confidence-chip");
   const dot  = document.getElementById("confidence-dot");
   const text = document.getElementById("confidence-text");
   
   if (chip && dot && text) {
-    const score = data.confidence_score || 0.95; // default si no viene
+    const score = data.confidence_score || 0.95;
     const percent = Math.round(score * 100);
     
     text.textContent = `Confianza IA: ${percent}%`;
     
-    // Limpiar clases previas
     chip.className = "font-bold text-xs px-md py-xs rounded-full flex items-center gap-xs transition-colors duration-500 ";
     dot.className  = "w-1.5 h-1.5 rounded-full transition-colors ";
 
@@ -100,8 +96,6 @@ export const resetPreview = () => {
   currentData = null;
   document.getElementById("preview-empty")?.classList.remove("hidden");
   document.getElementById("preview-content")?.classList.add("hidden");
-
-  // batchManager maneja los botones ahora
 
   window.dispatchEvent(new CustomEvent("preview-reset"));
 };

@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(import.meta.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
 export const POST = async ({ request }) => {
   try {
@@ -73,7 +73,6 @@ export const POST = async ({ request }) => {
   } catch (error) {
     console.error("AI processing error:", error);
     
-    // Identificar si el error es de tokens/cuota o rate limit
     const errMsg = error.message?.toLowerCase() || "";
     if (errMsg.includes("quota") || errMsg.includes("429") || errMsg.includes("rate limit") || errMsg.includes("tokens")) {
       return new Response(JSON.stringify({ 

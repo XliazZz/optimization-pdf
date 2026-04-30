@@ -14,12 +14,10 @@ import AnalyticsDashboard from "../components/AnalyticsDashboard.astro";
     class="w-full max-w-7xl mx-auto space-y-lg transition-all duration-500 pt-xl"
     id="main-container"
   >
-    <!-- VISTA 1: NUEVA EXTRACCIÓN -->
     <div id="view-extract" class="view-panel space-y-lg">
       <PageHeader />
       <DropZone />
 
-      <!-- Feature Grid (se oculta en modo revisión) -->
       <section
         id="feature-grid"
         class="grid grid-cols-1 md:grid-cols-4 gap-lg pt-lg"
@@ -78,22 +76,18 @@ import AnalyticsDashboard from "../components/AnalyticsDashboard.astro";
         </div>
       </section>
 
-      <!-- Contenedor normal: aloja el card por defecto -->
       <div id="preview-normal">
         <div id="data-card-wrapper">
           <DataPreviewCard />
         </div>
       </div>
 
-      <!-- Split-screen: PDF viewer (izq) + slot para el card (der) - vacío en HTML -->
       <div id="review-layout" class="hidden items-start">
         <PDFViewer />
         <div id="review-card-slot" class="flex-1 min-w-0"></div>
       </div>
     </div>
-    <!-- #view-extract -->
 
-    <!-- VISTA 2: HISTORIAL DE LEADS -->
     <div
       id="view-history"
       class="view-panel hidden h-full flex-col space-y-md"
@@ -110,7 +104,6 @@ import AnalyticsDashboard from "../components/AnalyticsDashboard.astro";
       </div>
     </div>
 
-    <!-- VISTA 3: ANALYTICS -->
     <div id="view-analytics" class="view-panel hidden space-y-md">
       <div>
         <h2 class="font-h2 text-h2 text-on-surface">Métricas y Pipeline</h2>
@@ -149,24 +142,19 @@ import AnalyticsDashboard from "../components/AnalyticsDashboard.astro";
   window.addEventListener("batch-review-started", (e: Event) => {
     const { pdfBlobUrl } = (e as CustomEvent).detail;
 
-    // Ocultar elementos del modo normal
     featureGrid.classList.add("hidden");
     previewNormal.classList.add("hidden");
     document.getElementById("page-header-container")?.classList.add("hidden");
     document.getElementById("dropzone-container")?.classList.add("hidden");
 
-    // Mover el card (única instancia) al slot del split
     reviewCardSlot.appendChild(dataCardWrapper);
 
-    // Mostrar el split layout
     reviewLayout.style.display = "grid";
     reviewLayout.style.gridTemplateColumns = "1fr 1fr";
     reviewLayout.classList.remove("hidden");
 
-    // Ampliar el contenedor principal
     mainContainer.classList.replace("max-w-4xl", "max-w-screen-xl");
 
-    // Cargar PDF en el visor
     pdfViewerPanel.style.display = "flex";
     if (pdfBlobUrl && pdfIframe) {
       pdfIframe.src = pdfBlobUrl;
@@ -175,19 +163,15 @@ import AnalyticsDashboard from "../components/AnalyticsDashboard.astro";
   });
 
   window.addEventListener("preview-reset", () => {
-    // Devolver el card al contenedor normal
     previewNormal.appendChild(dataCardWrapper);
 
-    // Restablecer visibilidad
     featureGrid.classList.remove("hidden");
     previewNormal.classList.remove("hidden");
     reviewLayout.classList.add("hidden");
     reviewLayout.style.display = "";
 
-    // Restaurar tamaño
     mainContainer.classList.replace("max-w-screen-xl", "max-w-4xl");
 
-    // Limpiar visor y liberar memoria
     if (pdfIframe?.src?.startsWith("blob:")) {
       URL.revokeObjectURL(pdfIframe.src);
       pdfIframe.src = "";
@@ -195,26 +179,23 @@ import AnalyticsDashboard from "../components/AnalyticsDashboard.astro";
     pdfViewerPanel.style.display = "";
     placeholder?.classList.remove("hidden");
 
-    // Volver a mostrar header y dropzone
     document
       .getElementById("page-header-container")
       ?.classList.remove("hidden");
     document.getElementById("dropzone-container")?.classList.remove("hidden");
   });
 
-  // Escucha el evento de cambio de vistas desde el Sidebar
   window.addEventListener("change-view", (e: Event) => {
     const { viewId } = (e as CustomEvent).detail;
 
-    // Ocultar todas las vistas
     document.querySelectorAll(".view-panel").forEach((panel) => {
       panel.classList.add("hidden");
     });
 
-    // Mostrar solo la vista seleccionada
     const targetView = document.getElementById(viewId);
     if (targetView) {
       targetView.classList.remove("hidden");
     }
   });
 </script>
+

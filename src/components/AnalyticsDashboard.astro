@@ -1,10 +1,8 @@
 ---
-// src/components/AnalyticsDashboard.astro
 ---
 
 <div class="flex flex-col gap-lg pb-xl">
   <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
-    <!-- Card: Total Pipeline -->
     <div
       class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group"
     >
@@ -26,14 +24,13 @@
         </p>
         <p
           id="stat-pipeline"
-          class="font-h1 text-4xl text-on-surface font-black"
+          class="font-h1 text-2xl text-on-surface font-black"
         >
           <span class="animate-pulse text-outline-variant">...</span>
         </p>
       </div>
     </div>
 
-    <!-- Card: Proyectos Activos -->
     <div
       class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group"
     >
@@ -55,14 +52,13 @@
         </p>
         <p
           id="stat-projects"
-          class="font-h1 text-4xl text-on-surface font-black"
+          class="font-h1 text-2xl text-on-surface font-black"
         >
           <span class="animate-pulse text-outline-variant">...</span>
         </p>
       </div>
     </div>
 
-    <!-- Card: Ticket Promedio -->
     <div
       class="bg-surface-container-lowest p-lg rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group"
     >
@@ -84,7 +80,7 @@
         </p>
         <p
           id="stat-average"
-          class="font-h1 text-4xl text-on-surface font-black"
+          class="font-h1 text-2xl text-on-surface font-black"
         >
           <span class="animate-pulse text-outline-variant">...</span>
         </p>
@@ -170,7 +166,6 @@
       const averageValue =
         projectsWithValue > 0 ? totalValue / projectsWithValue : 0;
 
-      // Actualizar UI - Stats
       const formatCurr = (val: number) =>
         `USD ${val.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
 
@@ -181,9 +176,8 @@
       document.getElementById("stat-average")!.textContent =
         formatCurr(averageValue);
 
-      // Actualizar UI - Etapas
       const stagesHtml = Object.entries(stagesCount)
-        .sort((a, b) => b[1] - a[1]) // mayor a menor
+        .sort((a, b) => b[1] - a[1])
         .map(([stage, count]) => {
           const percentage = Math.round((count / totalProjects) * 100);
           return `
@@ -202,7 +196,6 @@
         stagesHtml ||
         '<p class="text-on-surface-variant text-sm py-xs">No hay datos suficientes.</p>';
 
-      // Actualizar UI - Recientes (ultimos 5)
       const recentHtml = leads
         .slice(0, 5)
         .map((lead) => {
@@ -236,17 +229,14 @@
     }
   };
 
-  // Cargar si estamos en la vista
-  // Invalidar caché cuando se guarda un lead nuevo (reseteando cachedLeads)
   window.addEventListener("change-view", (e: Event) => {
     const { viewId } = (e as CustomEvent).detail;
     if (viewId === "view-analytics") {
-      // Forzar recarga de cache cada vez que se entra, por si hubo un pdf nuevo
       cachedLeads = null;
       loadAnalytics();
     }
   });
 
-  // Load inicial por si arranca pre-render
   loadAnalytics();
 </script>
+

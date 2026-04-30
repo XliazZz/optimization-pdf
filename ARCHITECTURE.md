@@ -6,25 +6,26 @@ Esta guía explica el funcionamiento interno del proyecto para que puedas defend
 
 - **Astro**: Framework de frontend elegido por su rendimiento y manejo de islas de interactividad.
 - **Tailwind CSS**: Para un diseño responsivo y moderno (usando variables de color de Material 3).
-- **Supabase**: Backend-as-a-Service para persistencia de datos (SQL).
-- **Gemini 1.5 Flash**: Modelo de IA para extracción de datos estructurados desde PDF.
+- **Supabase**: Backend-as-a-Service para persistencia de datos y gestión de leads.
+- **Gemini 2.0/2.5 Flash**: Orquestación de IA para extracción y validación de datos.
 
 ## 2. Flujo de Datos (The Data Lifecycle)
 
-1. **Captura**: El usuario suelta un PDF en `DropZone.astro`.
-2. **Hashing**: Se genera un Hash (SHA-256) del archivo antes de subirlo.
-3. **Deduplicación**: Se consulta `/api/check-hash`. Si el archivo ya existe en Supabase, se traen los datos guardados. Esto ahorra tokens de IA y dinero.
-4. **Extracción (si es nuevo)**: Se envía el PDF a `/api/process-pdf` donde Gemini analiza el documento y devuelve un JSON estricto basado en un prompt técnico.
-5. **Verificación (Human-in-the-loop)**: Los datos se muestran en el `split-screen` layout. El usuario puede editar cualquier campo antes de confirmar.
-6. **Persistencia**: Al confirmar, se hace un `upsert` en Supabase a través de `/api/save-lead`.
+1. **Captura por Lotes**: El usuario suelta hasta 10 PDFs en `DropZone.astro`.
+2. **Hashing & Deduplicación**: Se genera un Hash (SHA-256) por archivo. Si el hash existe, se recuperan datos históricos para evitar costos de API.
+3. **Procesamiento Paralelo**: Los archivos nuevos se envían en paralelo a `/api/process-pdf`.
+4. **Validación de Dominio**: Gemini valida si el documento es un lead de construcción legítimo. Si no lo es, se rechaza con un error `INVALID_DOMAIN`.
+5. **Asistente Secuencial (Wizard)**: El `batchManager.ts` coordina la navegación paso a paso. El usuario verifica y edita cada documento.
+6. **Persistencia Final**: Solo al confirmar el lote completo, se realiza un `upsert` masivo en Supabase.
 
 ## 3. Manejo de Estado (Client-Side)
 
-- **`previewState.ts`**: Es el "corazón" del estado. Maneja la carga de campos, actualización de valores editados y el cálculo del **Confidence Score**.
-- **Eventos Globales**: Usamos `CustomEvent` para comunicar componentes independientes sin necesidad de Redux o librerías pesadas:
-  - `pdf-data-ready`: Activa el modo revisión.
-  - `preview-reset`: Limpia la UI y vuelve al estado inicial.
-  - `change-view`: Cambia entre las pestañas del Dashboard (Sidebar).
+- **`batchManager.ts`**: El orquestador principal. Gestiona la cola de archivos (`batchQueue`), el índice actual y la lógica de guardado en lote.
+- **`previewState.ts`**: Motor de sincronización UI-Data. Maneja el rellenado de campos, la edición en tiempo real y el Confidence Score.
+- **Eventos Globales**:
+  - `batch-review-started`: Cambia a modo revisión una vez que el primer PDF está listo.
+  - `preview-reset`: Limpia el estado y regresa al DropZone idle.
+  - `leads-updated`: Refresca las tablas de datos tras un guardado.
 
 ## 4. Estructura de Base de Datos
 

@@ -30,29 +30,23 @@ export const startBatch = async (files: File[]) => {
     }));
     currentIndex = 0;
 
-    // Procesar el resto en background (fire and forget)
     for (let i = 1; i < batchQueue.length; i++) {
         processItem(i);
     }
 
-    // Esperar a que el primer item termine
     await processItem(0);
 
-    // Si el primero falló, no entramos en el modo revisión (side-by-side)
     if (batchQueue[0].status === 'error') {
-        // Limpiamos y volvemos al estado inicial del DropZone
         resetPreview();
         return;
     }
 
-    // Despachar evento para cambiar a la vista de revisión (split screen)
     window.dispatchEvent(
       new CustomEvent("batch-review-started", {
         detail: { pdfBlobUrl: batchQueue[0].pdfBlobUrl },
       }),
     );
 
-    // Mostrar el primero en la UI derecha
     renderCurrentItem();
 };
 
@@ -66,7 +60,6 @@ const hashFile = async (buffer: ArrayBuffer): Promise<string> => {
 const processItem = async (index: number) => {
     const item = batchQueue[index];
     item.status = 'processing';
-    // Si estamos en este index y YA está en split view, mostramos que está procesando
     if (currentIndex === index && document.getElementById("review-layout")?.style.display === "grid") {
         renderCurrentItem();
     }
@@ -90,7 +83,6 @@ const processItem = async (index: number) => {
                 }
             }
         } catch {
-            // Error silently ignored for duplicate check
         }
 
         const formData = new FormData();
@@ -108,12 +100,11 @@ const processItem = async (index: number) => {
             item.error = result.message || result.error || 'Error desconocido';
             item.errorCode = result.error || 'UNKNOWN';
             
-            // Mostrar alerta solo si es el item actual (para no spamear si hay múltiples errores en lote)
             if (currentIndex === index) {
                 if (item.errorCode === "QUOTA_EXCEEDED") {
-                    Swal.fire("Límite de la IA excedido", item.error, "error");
+                    Swal.fire("Límite de la IA excedido", item?.error || "", "error");
                 } else if (item.errorCode === "INVALID_DOMAIN") {
-                    Swal.fire("Documento no válido", item.error, "warning");
+                    Swal.fire("Documento no válido", item?.error || "", "warning");
                 }
             }
         } else {
@@ -140,24 +131,20 @@ export const renderCurrentItem = () => {
     const loading = document.getElementById("preview-loading");
     const content = document.getElementById("preview-content");
 
-    // Actualizar el PDF viewer (iframe) para este archivo
     const pdfIframe = document.getElementById("pdf-iframe") as HTMLIFrameElement;
     if (pdfIframe && pdfIframe.src !== item.pdfBlobUrl) {
         pdfIframe.src = item.pdfBlobUrl;
     }
 
-    // Actualizar UI del card
     document.getElementById("pdf-filename-display")!.textContent = item.file.name;
     document.getElementById("batch-counter")!.textContent = `${currentIndex + 1}/${batchQueue.length}`;
 
-    // Volver atrás
     const btnPrev = document.getElementById("btn-prev");
     if (btnPrev) {
         if (currentIndex > 0) btnPrev.classList.remove("hidden");
         else btnPrev.classList.add("hidden");
     }
 
-    // Botón siguiente / confirmar
     const btnNextIcon = document.getElementById("btn-next-confirm-icon");
     const btnNextText = document.getElementById("btn-next-confirm-text");
     if (btnNextIcon && btnNextText) {
@@ -170,7 +157,6 @@ export const renderCurrentItem = () => {
         }
     }
 
-    // Warning duplicado
     const dupWarn = document.getElementById("duplicate-warning");
     if (dupWarn) {
         if (item.status === 'ready' && item.hashExists) {
@@ -186,7 +172,6 @@ export const renderCurrentItem = () => {
         loading?.classList.remove("hidden");
         loading?.classList.add("flex");
         
-        // Asegurar que muestre el spinner y no el icono de error de un item anterior
         const spinner = loading?.querySelector(".material-symbols-outlined.text-error") || loading?.querySelector(".animate-spin");
         if (spinner) {
             spinner.className = "w-16 h-16 rounded-full border-4 border-primary-container border-t-primary animate-spin mb-4";
@@ -202,15 +187,13 @@ export const renderCurrentItem = () => {
         empty?.classList.add("hidden");
         loading?.classList.add("hidden");
         loading?.classList.remove("flex");
-        // Update the form with item.data
-        showPreview(item.data); // Reutilizamos previewState
+        showPreview(item.data);
     } else if (item.status === 'error') {
         empty?.classList.add("hidden");
         content?.classList.add("hidden");
         loading?.classList.remove("hidden");
         loading?.classList.add("flex");
         
-        // Cambiar icono del loading a error
         const spinner = loading?.querySelector(".animate-spin");
         if (spinner) {
             spinner.className = "material-symbols-outlined text-error mb-4";
@@ -223,12 +206,11 @@ export const renderCurrentItem = () => {
         const loadingText = document.querySelector("#preview-loading p:last-child");
         if (loadingText) loadingText.textContent = item.error || "Inténtalo de nuevo";
 
-        // Si navegamos hacia este item y tiene un error específico, mostrar alerta (si no se mostró ya)
         if (!item._alertShown) {
             if (item.errorCode === "QUOTA_EXCEEDED") {
-                Swal.fire("Límite de la IA excedido", item.error, "error");
+                Swal.fire("Límite de la IA excedido", item?.error || "", "error");
             } else if (item.errorCode === "INVALID_DOMAIN") {
-                Swal.fire("Documento no válido", item.error, "warning");
+                Swal.fire("Documento no válido", item?.error || "", "warning");
             }
             item._alertShown = true;
         }
@@ -236,8 +218,6 @@ export const renderCurrentItem = () => {
 };
 
 export const nextItem = async () => {
-    // Si la data está mostrada, la guardamos temporalmente en local array
-    // (previewState.currentData)
     const { currentData } = await import("./previewState");
     if (currentData && batchQueue[currentIndex].status === 'ready') {
         batchQueue[currentIndex].data = currentData;
@@ -247,7 +227,6 @@ export const nextItem = async () => {
         currentIndex++;
         renderCurrentItem();
     } else {
-        // Confirmar y guardar todos!
         saveAllBatch();
     }
 };
@@ -265,7 +244,6 @@ export const prevItem = async () => {
 };
 
 const saveAllBatch = async () => {
-    // Collect all valid data
     const validItems = batchQueue.filter(item => item.status === 'ready' && item.data);
     if (validItems.length === 0) {
         Swal.fire("Aviso", "No hay datos válidos para guardar.", "warning");
@@ -285,10 +263,7 @@ const saveAllBatch = async () => {
 
     try {
         let successCount = 0;
-        // Post them one by one (or modify backend to accept batch). Post one by one is fine for now
         for (const item of validItems) {
-            // Solo guarda si NO estaba previamente, o si queremos actualizar
-            // (La BD hace upsert en save-lead)
             const response = await fetch("/api/save-lead", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -303,7 +278,6 @@ const saveAllBatch = async () => {
             text: `Se guardaron ${successCount} documentos correctamente.`,
             confirmButtonColor: "var(--color-primary)",
         }).then(() => {
-            // Clear blob URLs
             batchQueue.forEach(item => {
                 if (item.pdfBlobUrl) URL.revokeObjectURL(item.pdfBlobUrl);
             });
@@ -342,3 +316,4 @@ export const cancelBatch = () => {
       }
     });
 };
+

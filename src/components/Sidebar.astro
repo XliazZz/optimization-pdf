@@ -46,7 +46,7 @@ const navItems = [
       navItems.map((item) => (
         <button
           id={item.id}
-          class={`nav-btn w-full flex items-center gap-sm px-md py-sm rounded-xl font-label-md transition-all ${
+          class={`nav-btn w-full flex items-center gap-sm px-md py-sm rounded-xl font-label-md transition-all cursor-pointer ${
             item.active
               ? "bg-indigo-50 text-indigo-600 font-semibold"
               : "text-on-surface-variant hover:bg-surface-container  font-semibold"
