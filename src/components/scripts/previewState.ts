@@ -66,14 +66,7 @@ export const showPreview = (data: Record<string, any>) => {
   document.getElementById("preview-content")
     ?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  const btnConfirm = document.getElementById("btn-confirm") as HTMLButtonElement | null;
-  if (btnConfirm) {
-    if (data.hashExists) {
-      btnConfirm.classList.add("hidden");
-    } else {
-      btnConfirm.classList.remove("hidden");
-    }
-  }
+  // Botón removido: el batchManager maneja la navegación
 
   // Actualizar el chip de confianza
   const chip = document.getElementById("confidence-chip");
@@ -108,15 +101,7 @@ export const resetPreview = () => {
   document.getElementById("preview-empty")?.classList.remove("hidden");
   document.getElementById("preview-content")?.classList.add("hidden");
 
-  const btn = document.getElementById("btn-confirm") as HTMLButtonElement | null;
-  if (btn) {
-    btn.classList.remove("hidden");
-    btn.disabled = false;
-    btn.innerHTML = `
-      <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">save</span>
-      Confirmar y Guardar
-    `;
-  }
+  // batchManager maneja los botones ahora
 
   window.dispatchEvent(new CustomEvent("preview-reset"));
 };

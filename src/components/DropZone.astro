@@ -17,7 +17,7 @@ interface Props {}
       id="dropzone-idle"
       class="relative flex flex-col items-center justify-center min-h-[400px] bg-background border-2 border-dashed border-primary-container rounded-2xl p-xl text-center transition-all duration-300 hover:bg-surface-container-low hover:border-primary cursor-grab"
     >
-      <input type="file" id="file-input" accept=".pdf" class="hidden" />
+      <input type="file" id="file-input" accept=".pdf" class="hidden" multiple />
 
       <div class="mb-lg">
         <div
@@ -68,8 +68,8 @@ interface Props {}
         >
         </div>
         <div class="space-y-xs">
-          <p class="font-h2 text-h3 text-on-background">Analizando documento</p>
-          <p class="font-body-sm text-sm text-on-surface-variant">
+          <p class="font-h2 text-h3 text-on-background" id="loading-title">Analizando documento</p>
+          <p class="font-body-sm text-sm text-on-surface-variant" id="loading-text">
             La IA está leyendo el PDF y extrayendo los datos.<br />
             Esto puede tardar unos segundos.
           </p>
@@ -98,7 +98,8 @@ interface Props {}
     idleView?.classList.remove("hidden");
   };
 
-  // Calcula SHA-256 del archivo en el cliente (Web Crypto API, sin librerías)
+  window.addEventListener("preview-reset", showIdle);
+
   const hashFile = async (buffer: ArrayBuffer): Promise<string> => {
     const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
     return Array.from(new Uint8Array(hashBuffer))
@@ -106,8 +107,12 @@ interface Props {}
       .join("");
   };
 
-  const processFile = async (file: File) => {
-    if (file.type !== "application/pdf") {
+  import { startBatch } from "./scripts/batchManager";
+
+  const processFiles = (filesArray: File[]) => {
+    const pdfFiles = filesArray.filter((f) => f.type === "application/pdf");
+
+    if (pdfFiles.length === 0) {
       Swal.fire({
         icon: "error",
         title: "Formato inválido",
@@ -117,89 +122,29 @@ interface Props {}
       return;
     }
 
-    // 1. Calcular hash en el cliente
-    const arrayBuffer = await file.arrayBuffer();
-    const fileHash = await hashFile(arrayBuffer);
-
-    // 2. Verificar duplicado ANTES de llamar a la IA (evita gastar tokens)
-    let hashAlreadyExists = false;
-    try {
-      const checkRes = await fetch(`/api/check-hash?hash=${fileHash}`);
-      const checkData = await checkRes.json();
-      if (checkData.exists) {
-        hashAlreadyExists = true;
-        Swal.fire({
-          icon: "info",
-          title: "PDF ya registrado",
-          text: "Este documento ya fue procesado. Mostrando los datos guardados para revisión.",
-          confirmButtonColor: "var(--color-primary)",
-          timer: 3500,
-          timerProgressBar: true,
-        });
-      }
-    } catch {
-      // Si el endpoint de check falla, continúa; Supabase rechazará el duplicado al guardar
-    }
-
-    // 3. Crear Blob URL para el visor de PDF (sin subida al servidor)
-    const pdfBlobUrl = URL.createObjectURL(file);
-
-    // 4. Mostrar loading inline
-    showLoading();
-
-    try {
-      let result: Record<string, any>;
-
-      if (hashAlreadyExists) {
-        // PDF ya registrado: traer datos actualizados desde Supabase (no gastar tokens de IA)
-        const res = await fetch(`/api/get-lead-by-hash?hash=${fileHash}`);
-        result = await res.json();
-        if (!res.ok)
-          throw new Error(result.error || "Error al obtener datos de la BD");
-      } else {
-        // PDF nuevo: procesar con Gemini
-        const formData = new FormData();
-        formData.append("pdf", file);
-        formData.append("fileHash", fileHash);
-
-        const res = await fetch("/api/process-pdf", {
-          method: "POST",
-          body: formData,
-        });
-        result = await res.json();
-        if (!res.ok) {
-          showIdle();
-          URL.revokeObjectURL(pdfBlobUrl);
-          Swal.fire({
-            icon: "warning",
-            title: "Aviso",
-            text: result.error || "Hubo un problema al procesar el PDF.",
-            confirmButtonColor: "var(--color-primary)",
-          });
-          return;
-        }
-      }
-
-      showIdle();
-      window.dispatchEvent(
-        new CustomEvent("pdf-data-ready", {
-          detail: { ...result, hashExists: hashAlreadyExists, pdfBlobUrl },
-        }),
-      );
-    } catch (err: any) {
-      showIdle();
+    if (pdfFiles.length > 10) {
       Swal.fire({
-        icon: "error",
-        title: "Error de conexión",
-        text: err?.message || "No se pudo conectar con el servidor.",
+        icon: "warning",
+        title: "Demasiados archivos",
+        text: "Por favor subí un máximo de 10 PDFs a la vez.",
         confirmButtonColor: "var(--color-primary)",
       });
+      return;
     }
+
+    const loadingTitle = document.getElementById("loading-title");
+    const loadingText = document.getElementById("loading-text");
+    if (loadingTitle) loadingTitle.textContent = `Analizando ${pdfFiles.length} documento${pdfFiles.length > 1 ? 's' : ''}`;
+    if (loadingText) loadingText.innerHTML = `La IA está procesando los datos.<br />Por favor espera unos segundos.`;
+    
+    showLoading();
+
+    startBatch(pdfFiles);
   };
 
   selectBtn?.addEventListener("click", () => fileInput.click());
   fileInput.addEventListener("change", () => {
-    if (fileInput.files?.[0]) processFile(fileInput.files[0]);
+    if (fileInput.files?.length) processFiles(Array.from(fileInput.files));
   });
 
   dropZone?.addEventListener("dragover", (e) => {
@@ -212,7 +157,7 @@ interface Props {}
   dropZone?.addEventListener("drop", (e) => {
     e.preventDefault();
     dropZone.classList.remove("scale-[1.02]", "brightness-110");
-    const file = e.dataTransfer?.files[0];
-    if (file) processFile(file);
+    const files = e.dataTransfer?.files;
+    if (files?.length) processFiles(Array.from(files));
   });
 </script>

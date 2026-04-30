@@ -146,7 +146,7 @@ import AnalyticsDashboard from "../components/AnalyticsDashboard.astro";
     "pdf-viewer-placeholder",
   ) as HTMLElement;
 
-  window.addEventListener("pdf-data-ready", (e: Event) => {
+  window.addEventListener("batch-review-started", (e: Event) => {
     const { pdfBlobUrl } = (e as CustomEvent).detail;
 
     // Ocultar elementos del modo normal

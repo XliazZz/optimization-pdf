@@ -17,27 +17,41 @@ import PreviewSection from "./PreviewSection.astro";
   </p>
 </div>
 
+<div
+  id="preview-loading"
+  class="hidden flex-col items-center justify-center pt-xl text-center gap-md min-h-[400px]"
+>
+  <div class="w-16 h-16 rounded-full border-4 border-primary-container border-t-primary animate-spin"></div>
+  <p class="font-h2 text-h3 text-on-background" id="preview-loading-title">Analizando documento...</p>
+  <p class="font-body-sm text-sm text-on-surface-variant">La IA está extrayendo los datos.</p>
+</div>
+
 <div id="preview-content" class="hidden">
   <div
     class="items-center justify-between mb-lg border-b border-outline-variant p-5"
   >
+    <div id="duplicate-warning" class="hidden bg-blue-50 text-blue-800 p-sm rounded-lg mb-4 text-sm font-medium flex items-center gap-2">
+      <span class="material-symbols-outlined" style="font-size: 18px;">info</span>
+      Este documento ya había sido subido anteriormente.
+    </div>
+
     <div class="flex items-stretch gap-sm justify-between m">
-      <div class="flex items-center gap-sm">
+      <div class="flex items-center gap-sm min-w-0">
         <span
-          class="material-symbols-outlined text-primary"
+          class="material-symbols-outlined text-primary shrink-0"
           style="font-variation-settings: 'FILL' 1;"
         >
           dataset
         </span>
 
-        <h2 class="font-semibold text-lg text-on-surface">
+        <h2 class="font-semibold text-lg text-on-surface truncate" id="pdf-filename-display">
           Vista Previa de Datos
         </h2>
       </div>
 
       <span
         id="confidence-chip"
-        class="bg-emerald-50 text-green-800 font-bold text-xs px-md py-xs rounded-full flex items-center gap-xs transition-colors duration-500"
+        class="bg-emerald-50 text-green-800 font-bold text-xs px-md py-xs rounded-full flex items-center gap-xs transition-colors duration-500 shrink-0"
       >
         <span
           id="confidence-dot"
@@ -47,8 +61,9 @@ import PreviewSection from "./PreviewSection.astro";
       </span>
     </div>
 
-    <p class="text-sm text-on-surface-variant mt-2">
-      Verifique que los datos sean correctos.
+    <p class="text-sm text-on-surface-variant mt-2 flex justify-between items-center">
+      <span>Verifique que los datos sean correctos.</span>
+      <span id="batch-counter" class="font-bold text-white bg-primary-container px-2 py-1 rounded-md text-xs">1/1</span>
     </p>
   </div>
 
@@ -97,41 +112,47 @@ import PreviewSection from "./PreviewSection.astro";
     />
   </div>
 
-  <div class="mt-xl pt-lg flex justify-end gap-md">
-    <button
-      id="btn-cancel"
-      class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-lg py-md rounded-xl hover:bg-surface-container-highest transition-colors shadow-sm focus:outline-none cursor-pointer"
-      type="button"
-    >
-      Cancelar
-    </button>
-    <button
-      id="btn-confirm"
-      class="bg-primary text-on-primary font-label-sm text-label-sm px-xl py-md rounded-xl hover:bg-opacity-90 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex items-center gap-sm lift-shadow cursor-pointer hover:bg-indigo-500 hover:shadow-lg"
-      type="button"
-    >
-      <span
-        class="material-symbols-outlined text-sm"
-        style="font-variation-settings: 'FILL' 1;"
+  <div class="mt-xl pt-lg flex justify-between gap-md border-t border-outline-variant p-5">
+    <div>
+      <button
+        id="btn-prev"
+        class="hidden bg-surface-container-high text-on-surface font-label-sm text-label-sm px-lg py-md rounded-xl hover:bg-surface-container-highest transition-colors shadow-sm focus:outline-none flex items-center gap-sm cursor-pointer"
+        type="button"
       >
-        save
-      </span>
-      Confirmar y Guardar
-    </button>
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        Volver
+      </button>
+    </div>
+    <div class="flex gap-md">
+      <button
+        id="btn-cancel"
+        class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-lg py-md rounded-xl hover:bg-surface-container-highest transition-colors shadow-sm focus:outline-none cursor-pointer"
+        type="button"
+      >
+        Cancelar
+      </button>
+      <button
+        id="btn-next-confirm"
+        class="bg-primary text-on-primary font-label-sm text-label-sm px-xl py-md rounded-xl hover:bg-opacity-90 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex items-center gap-sm lift-shadow cursor-pointer hover:bg-indigo-500 hover:shadow-lg"
+        type="button"
+      >
+        <span
+          class="material-symbols-outlined text-sm"
+          style="font-variation-settings: 'FILL' 1;"
+          id="btn-next-confirm-icon"
+        >
+          navigate_next
+        </span>
+        <span id="btn-next-confirm-text">Siguiente</span>
+      </button>
+    </div>
   </div>
 </div>
 
 <script>
-  import { showPreview } from "./scripts/previewState";
-  import {
-    initCancelButton,
-    initConfirmButton,
-  } from "./scripts/previewActions";
+  import { nextItem, prevItem, cancelBatch } from "./scripts/batchManager";
 
-  initCancelButton();
-  initConfirmButton();
-
-  window.addEventListener("pdf-data-ready", (e: Event) => {
-    showPreview((e as CustomEvent).detail);
-  });
+  document.getElementById("btn-prev")?.addEventListener("click", () => prevItem());
+  document.getElementById("btn-next-confirm")?.addEventListener("click", () => nextItem());
+  document.getElementById("btn-cancel")?.addEventListener("click", () => cancelBatch());
 </script>
