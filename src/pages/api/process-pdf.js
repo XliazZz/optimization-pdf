@@ -43,7 +43,8 @@ export const POST = async ({ request }) => {
           "description": string, 
           "due_date": string, 
           "is_completed": false 
-        }
+        },
+        "confidence_score": number
       }
     `;
 

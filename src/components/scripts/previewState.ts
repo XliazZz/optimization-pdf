@@ -74,6 +74,33 @@ export const showPreview = (data: Record<string, any>) => {
       btnConfirm.classList.remove("hidden");
     }
   }
+
+  // Actualizar el chip de confianza
+  const chip = document.getElementById("confidence-chip");
+  const dot  = document.getElementById("confidence-dot");
+  const text = document.getElementById("confidence-text");
+  
+  if (chip && dot && text) {
+    const score = data.confidence_score || 0.95; // default si no viene
+    const percent = Math.round(score * 100);
+    
+    text.textContent = `Confianza IA: ${percent}%`;
+    
+    // Limpiar clases previas
+    chip.className = "font-bold text-xs px-md py-xs rounded-full flex items-center gap-xs transition-colors duration-500 ";
+    dot.className  = "w-1.5 h-1.5 rounded-full transition-colors ";
+
+    if (score >= 0.85) {
+      chip.classList.add("bg-emerald-50", "text-emerald-700");
+      dot.classList.add("bg-emerald-600");
+    } else if (score >= 0.6) {
+      chip.classList.add("bg-amber-50", "text-amber-700");
+      dot.classList.add("bg-amber-600");
+    } else {
+      chip.classList.add("bg-red-50", "text-red-700");
+      dot.classList.add("bg-red-600");
+    }
+  }
 };
 
 export const resetPreview = () => {

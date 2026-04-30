@@ -10,29 +10,29 @@ const { id, label, extraClass = "" } = Astro.props;
 
 <div
   id={id}
-  class:list={[
-    "bg-surface-container-lowest p-sm rounded-xl border border-outline-variant group relative transition-colors",
-    extraClass,
-  ]}
+  class:list={["rounded-xl  group relative transition-colors", extraClass]}
 >
-  <label class="font-bold text-xs text-indigo-700 block mb-xs">
+  <label class="font-extralight text-xs text-slate-600 block mb-xs">
     {label}
   </label>
 
-  <div class="preview-read flex items-center justify-between gap-sm">
+  <div
+    class="preview-read flex items-center justify-between border-b border-outline-variant"
+  >
     <p
-      class="font-body-md text-body-md text-on-surface font-medium preview-value flex-1 cursor-pointer break-all"
+      class="text-base text-on-surface font-semibold preview-value flex-1 cursor-pointer break-all"
     >
       —
     </p>
+
     <button
       type="button"
-      class="preview-edit-btn opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-on-surface-variant hover:text-primary p-xs rounded-lg hover:bg-surface-container"
+      class="preview-edit-btn opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-on-surface-variant hover:text-primary p-xs rounded-lg hover:bg-surface-container cursor-pointer"
       aria-label={`Editar ${label}`}
     >
       <span
         class="material-symbols-outlined"
-        style="font-size: 16px; font-variation-settings: 'FILL' 0;"
+        style="font-size: 20px; font-variation-settings: 'FILL' 0;"
       >
         edit
       </span>

@@ -1,43 +1,41 @@
-# Astro Starter Kit: Minimal
+# 🏗️ DataExtract AI: Construcción & Leads Dashboard
 
-```sh
-pnpm create astro@latest -- --template minimal
-```
+Plataforma inteligente de extracción de datos para proyectos de construcción, impulsada por **Gemini 1.5 Flash** y **Supabase**.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+![Status](https://img.shields.io/badge/Status-Complete-success)
+![Stack](https://img.shields.io/badge/Stack-Astro--Supabase--Gemini-blue)
 
-## 🚀 Project Structure
+## 🌟 Características Principales
 
-Inside of your Astro project, you'll see the following folders and files:
+- **Extracción Inteligente**: Convierte informes PDF complejos en datos estructurados (Empresa, Contacto, Valor de Proyecto).
+- **Vista Side-by-Side**: Interfaz de verificación humana donde puedes comparar el PDF original con los datos extraídos en tiempo real.
+- **Dashboard de Gestión**: Visualiza tu pipeline de ventas, estadísticas de proyectos y actividad reciente.
+- **Deduplicación Inteligente**: Sistema de hashing para evitar el re-procesamiento de archivos ya existentes, optimizando costos de API.
+- **Exportación**: Descarga tus leads validados en formato CSV para integrarlos con otros CRM.
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+## 🚀 Tecnologías
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+- **Frontend**: Astro (Islands Architecture), Tailwind CSS (Material Design 3 system).
+- **IA**: Google Gemini 1.5 Flash API.
+- **Backend/DB**: Supabase (PostgreSQL) con lógica de Row Level Security (RLS) opcional.
+- **Hashing**: SHA-256 para integridad y deduplicación.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## 🛠️ Instalación y Uso
 
-Any static assets, like images, can be placed in the `public/` directory.
+1. Clona el repositorio.
+2. Instala dependencias: `pnpm install`.
+3. Configura tus variables de entorno en `.env`:
+   ```bash
+   SUPABASE_URL=tu_url
+   SUPABASE_ANON_KEY=tu_key
+   GEMINI_API_KEY=tu_gemini_key
+   ```
+4. Inicia el servidor de desarrollo: `pnpm run dev`.
 
-## 🧞 Commands
+## 📖 Documentación técnica
 
-All commands are run from the root of the project, from a terminal:
+Para una explicación profunda del funcionamiento del sistema, revisa el archivo [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+---
 
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+_Desarrollado como proyecto de portfolio para demostrar la integración de IA Generativa en flujos de trabajo profesionales._
