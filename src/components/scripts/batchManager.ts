@@ -267,7 +267,7 @@ const saveAllBatch = async () => {
             const response = await fetch("/api/save-lead", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(item.data),
+                body: JSON.stringify({ ...item.data, fileHash: item.hash }),
             });
             if (response.ok) successCount++;
         }
