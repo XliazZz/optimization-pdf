@@ -82,7 +82,7 @@ import AnalyticsDashboard from "../components/AnalyticsDashboard.astro";
         </div>
       </div>
 
-      <div id="review-layout" class="hidden items-start">
+      <div id="review-layout" class="hidden grid-cols-1 lg:grid-cols-2 gap-lg items-start">
         <PDFViewer />
         <div id="review-card-slot" class="flex-1 min-w-0"></div>
       </div>
@@ -148,9 +148,8 @@ import AnalyticsDashboard from "../components/AnalyticsDashboard.astro";
     document.getElementById("dropzone-container")?.classList.add("hidden");
 
     reviewCardSlot.appendChild(dataCardWrapper);
-
+    
     reviewLayout.style.display = "grid";
-    reviewLayout.style.gridTemplateColumns = "1fr 1fr";
     reviewLayout.classList.remove("hidden");
 
     mainContainer.classList.replace("max-w-4xl", "max-w-screen-xl");

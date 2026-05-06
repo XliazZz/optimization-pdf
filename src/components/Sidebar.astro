@@ -25,20 +25,31 @@ const navItems = [
 ---
 
 <aside
-  class="w-64 h-screen fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant flex flex-col z-50"
+  id="sidebar-container"
+  class="w-full lg:w-64 h-screen fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant flex flex-col z-[70] transition-transform duration-300 -translate-x-full lg:translate-x-0"
 >
-  <div class="p-lg flex items-center gap-sm border-b border-outline-variant/50">
-    <div
-      class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm"
-    >
-      <span
-        class="material-symbols-outlined text-on-primary"
-        style="font-variation-settings: 'FILL' 1;"
+  <div class="p-lg flex items-center justify-between border-b border-outline-variant/50">
+    <div class="flex items-center gap-sm">
+      <div
+        class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm"
       >
-        bolt
-      </span>
+        <span
+          class="material-symbols-outlined text-on-primary"
+          style="font-variation-settings: 'FILL' 1;"
+        >
+          bolt
+        </span>
+      </div>
+      <h1 class="lg:font-h3 lg:text-h3 text-on-surface">DataExtract AI</h1>
     </div>
-    <h1 class="font-h3 text-h3 text-on-surface">DataExtract AI</h1>
+
+    <!-- Botón de cierre (Solo Móvil) -->
+    <button
+      id="close-sidebar-btn"
+      class="lg:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"
+    >
+      <span class="material-symbols-outlined">close</span>
+    </button>
   </div>
 
   <nav class="flex-1 p-md flex flex-col gap-xs mt-md">
@@ -83,37 +94,57 @@ const navItems = [
 </aside>
 
 <script>
+  const sidebar = document.getElementById("sidebar-container");
+  const closeBtn = document.getElementById("close-sidebar-btn");
   const navBtns = document.querySelectorAll(".nav-btn");
 
-  // Escuchar el evento global para sincronizar el estado visual del Sidebar
+  const closeSidebar = () => {
+    if (window.innerWidth < 1024) {
+      sidebar?.classList.add("-translate-x-full");
+    }
+  };
+
+  const openSidebar = () => {
+    sidebar?.classList.remove("-translate-x-full");
+  };
+
+  // Toggle Sidebar Event
+  window.addEventListener("toggle-sidebar", openSidebar);
+
+  // Close Button
+  closeBtn?.addEventListener("click", closeSidebar);
+
   window.addEventListener("change-view", (e: Event) => {
     const { viewId } = (e as CustomEvent).detail;
-    
+
     navBtns.forEach((btn) => {
       const isTarget = btn.getAttribute("data-view") === viewId;
-      
+
       if (isTarget) {
         btn.classList.remove(
           "text-on-surface-variant",
-          "hover:bg-surface-container"
+          "hover:bg-surface-container",
         );
         btn.classList.add("bg-indigo-50", "text-indigo-600", "font-semibold");
         const icon = btn.querySelector(".nav-icon");
-        if (icon) icon.setAttribute("style", "font-variation-settings: 'FILL' 1;");
+        if (icon)
+          icon.setAttribute("style", "font-variation-settings: 'FILL' 1;");
       } else {
         btn.classList.remove("bg-indigo-50", "text-indigo-600");
         btn.classList.add(
           "text-on-surface-variant",
           "hover:bg-surface-container",
-          "font-semibold"
+          "font-semibold",
         );
         const icon = btn.querySelector(".nav-icon");
         if (icon) icon.setAttribute("style", "");
       }
     });
+
+    // Cerrar sidebar al cambiar vista en móvil
+    closeSidebar();
   });
 
-  // Al hacer clic, solo emitimos el evento. El listener de arriba hará el cambio visual.
   navBtns.forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const target = e.currentTarget as HTMLButtonElement;
@@ -122,5 +153,17 @@ const navItems = [
         new CustomEvent("change-view", { detail: { viewId } }),
       );
     });
+  });
+
+  // Cerrar al hacer clic fuera del sidebar en móvil (opcional pero recomendado)
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const isMobile = window.innerWidth < 1024;
+    const isInsideSidebar = sidebar?.contains(target);
+    const isMenuBtn = document.getElementById("mobile-menu-btn")?.contains(target);
+
+    if (isMobile && !isInsideSidebar && !isMenuBtn && !sidebar?.classList.contains("-translate-x-full")) {
+      closeSidebar();
+    }
   });
 </script>
